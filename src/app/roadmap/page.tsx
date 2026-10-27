@@ -1,0 +1,3 @@
+import {modules} from '@/lib/content';
+export const metadata={title:'Roadmap'};
+export default function Page(){return <main className="wrap"><div className="subhero"><div className="eyebrow">O FUTURO DA SHION</div><h1>Always <em>evolving.</em></h1><p>Um olhar transparente sobre as funcionalidades descritas no plano do projeto. Não existem datas de lançamento anunciadas.</p></div><div className="page-body timeline">{['Disponíveis no bot','Em desenvolvimento'].map((group,i)=><div key={group} className="timeline-item"><div className="eyebrow">{i===0?'ETAPA 01':'PRÓXIMAS ETAPAS'}</div><h3>{group}</h3><p>{modules.filter(m=>m.status===(i===0?'available':'planned')).map(m=>m.title).join(' · ')}</p></div>)}</div></main>}

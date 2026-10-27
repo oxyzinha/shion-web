@@ -1,0 +1,2 @@
+export const metadata={title:'Privacidade'};
+export default function Page(){return <main className="wrap"><div className="subhero"><h1>Política de <em>privacidade.</em></h1><p>Documentação em preparação.</p></div><div className="page-body public-placeholder">Esta versão do website não possui autenticação, não consulta dados de servidores e não recolhe métricas do bot. Antes da integração real, será publicada uma política completa com bases legais, períodos de retenção, direitos dos titulares e contactos.</div></main>}

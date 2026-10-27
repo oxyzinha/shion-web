@@ -1,0 +1,2 @@
+export const metadata={title:'Atualizações'};
+export default function Page(){return <main className="wrap"><div className="subhero"><div className="eyebrow">CHANGELOG</div><h1>O que há de <em>novo?</em></h1><p>O histórico de versões será publicado à medida que as atualizações forem confirmadas.</p></div><section className="page-body"><div className="content-card"><h2>Website · Versão inicial</h2><p>Estrutura pública, páginas informativas e dashboard demonstrativo, sem qualquer ligação real ao bot.</p></div></section></main>}

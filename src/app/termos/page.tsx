@@ -1,0 +1,2 @@
+export const metadata={title:'Termos de utilização'};
+export default function Page(){return <main className="wrap"><div className="subhero"><h1>Termos de <em>utilização.</em></h1><p>Documentação em preparação.</p></div><div className="page-body public-placeholder">Os termos oficiais serão publicados antes da disponibilização pública das funcionalidades autenticadas. Esta página não representa ainda um contrato de utilização completo.</div></main>}

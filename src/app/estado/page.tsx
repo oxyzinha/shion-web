@@ -1,0 +1,2 @@
+export const metadata={title:'Estado do serviço'};
+export default function Page(){return <main className="wrap"><div className="subhero"><div className="eyebrow">SERVICE STATUS</div><h1>Estado do <em>serviço.</em></h1><p>A monitorização em tempo real ainda não está integrada.</p></div><div className="page-body"><div className="public-placeholder"><strong>Estado indisponível.</strong> Ainda não existem dados de disponibilidade verificados. Esta página será ligada ao sistema de monitorização quando estiver pronto.</div></div></main>}

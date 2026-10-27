@@ -1,0 +1,7 @@
+'use client';
+import Link from 'next/link';
+import {Menu,X,ArrowUpRight} from 'lucide-react';
+import {useState} from 'react';
+const links=[['Funcionalidades','/funcionalidades'],['Documentação','/documentacao'],['Roadmap','/roadmap'],['Sobre','/sobre']];
+export function Header(){const [open,setOpen]=useState(false);return <header className="header"><div className="wrap head-inner"><Link href="/" className="brand"><img src="/shion-icon.png" alt="" className="brand-avatar" /> SHION <span className="brand-heart">♡</span></Link><nav className={'nav '+(open?'nav-open':'')}>{links.map(([t,h])=><Link onClick={()=>setOpen(false)} key={h} href={h}>{t}</Link>)}</nav><Link className="button button-small header-cta" href="/dashboard">Abrir dashboard <ArrowUpRight size={15}/></Link><button className="menu-btn" aria-label={open?'Fechar menu':'Abrir menu'} onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</button></div></header>}
+export function Footer(){return <footer className="footer"><div className="wrap footer-inner"><div><div className="brand"><img src="/shion-icon.png" alt="" className="brand-avatar" /> SHION ♡</div><p>O teu universo. A tua comunidade.</p></div><div className="footer-links"><Link href="/documentacao">Documentação</Link><Link href="/atualizacoes">Atualizações</Link><Link href="/estado">Estado</Link><Link href="/privacidade">Privacidade</Link><Link href="/termos">Termos</Link></div><small>© {new Date().getFullYear()} Shion. Projeto independente.</small></div></footer>}
