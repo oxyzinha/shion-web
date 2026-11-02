@@ -1,6 +1,6 @@
 export type ModuleStatus = 'available' | 'planned';
-export type ShionModule = {slug:string;title:string;eyebrow:string;description:string;status:ModuleStatus;details:string[];icon:string};
-export const modules: ShionModule[] = [
+export type ShayonModule = {slug:string;title:string;eyebrow:string;description:string;status:ModuleStatus;details:string[];icon:string};
+export const modules: ShayonModule[] = [
  {slug:'divulgacao',title:'Divulgação automática',eyebrow:'CRESCIMENTO',description:'Conecta comunidades através de uma rede de divulgação inteligente e configurável.',status:'available',icon:'megaphone',details:['Modo Apenas divulgar e Divulgação mútua','Intervalos de publicação controlados','Configuração de anúncios e painéis','Estatísticas de anúncios enviados e recebidos']},
  {slug:'boas-vindas',title:'Boas-vindas e despedidas',eyebrow:'COMUNIDADE',description:'Recebe novos membros com mensagens personalizadas que refletem a identidade do servidor.',status:'available',icon:'heart',details:['Mensagens e canais personalizáveis','Variáveis de membros e servidores','Pré-visualização e banner','Ativação independente de entradas e saídas']},
  {slug:'cargos',title:'Cargos automáticos',eyebrow:'AUTOMAÇÃO',description:'Facilita a organização dos membros desde o primeiro momento.',status:'available',icon:'users',details:['Atribuição automática de cargos','Respeito pela hierarquia do Discord','Integração com a verificação de membros']},
@@ -11,10 +11,10 @@ export const modules: ShionModule[] = [
  {slug:'analytics',title:'Analytics',eyebrow:'INSIGHTS',description:'Compreende o crescimento e a atividade da tua comunidade.',status:'planned',icon:'chart',details:['Entradas, saídas e evolução de membros','Mensagens, imagens e canais mais ativos','Métricas de tickets e moderação']},
 ];
 export const docs = [
- {title:'Instalação',text:'Quando o convite oficial estiver disponível, adiciona a Shion com as permissões apropriadas e escolhe os módulos que queres utilizar.'},
+ {title:'Instalação',text:'Quando o convite oficial estiver disponível, adiciona a Shayon com as permissões apropriadas e escolhe os módulos que queres utilizar.'},
  {title:'Primeiros passos',text:'Abre o painel do bot no Discord e consulta as opções disponibilizadas para o teu servidor.'},
  {title:'Divulgação',text:'Seleciona o modo de participação e configura os anúncios e os canais da rede de divulgação.'},
  {title:'Boas-vindas',text:'Define os canais, ativa as mensagens pretendidas e personaliza o texto de entradas e saídas.'},
- {title:'Cargos automáticos',text:'Confirma que o cargo da Shion está acima dos cargos que deverá atribuir.'},
+ {title:'Cargos automáticos',text:'Confirma que o cargo da Shayon está acima dos cargos que deverá atribuir.'},
  {title:'Tickets',text:'Escolhe as categorias e os cargos responsáveis pelo atendimento, respeitando a privacidade dos pedidos.'},
 ];
