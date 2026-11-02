@@ -1,130 +1,200 @@
 'use client';
 
-import {useCallback,useEffect,useState} from 'react';
-type Guild={id:string;name:string;owner:boolean;installed:boolean|null};
+import {useCallback,useEffect,useRef,useState} from 'react';
+import {ArrowRight,Check,ChevronDown,Clock3,RefreshCw,Search,Server,ShieldCheck,SlidersHorizontal} from 'lucide-react';
+import './servidores.css';
+
+type Mode='mutua'|'so_divulgar';
 type Settings={
- guild_id:string;installed:boolean;ativo:boolean;modo:string;
- canal_configurado:boolean;anuncio_configurado:boolean;
- nome:string|null;descricao:string|null;enviados:number;recebidos:number;
+ guild_id:string; installed:boolean; ativo:boolean; modo:Mode;
+ canal_configurado:boolean; anuncio_configurado:boolean;
+ nome:string|null; descricao:string|null; enviados:number; recebidos:number;
 };
-type GuildResponse={username:string;guilds:Guild[];verified:boolean};
-type State={status:'loading'|'installed'|'error';data?:Settings;message?:string};
+type Guild={id:string;name:string;owner:boolean;installed:boolean;divulgacao?:Settings};
+type Payload={username:string;guilds:Guild[];verified:boolean;checked_at:number};
+type Feedback={text:string;ok:boolean};
+type Filter='all'|'installed'|'other';
+const modeLabel=(mode:Mode)=>mode==='mutua'?'Divulgação mútua':'Apenas divulgar';
 
 export default function Servidores(){
- const [data,setData]=useState<GuildResponse|null>(null);
- const [error,setError]=useState('');
- const [checks,setChecks]=useState<Record<string,State>>({});
- const [saving,setSaving]=useState<string|null>(null);
- const [feedback,setFeedback]=useState<Record<string,string>>({});
-
- const loadDetail=useCallback(async(id:string)=>{
-  setChecks(previous=>({...previous,[id]:{status:'loading'}}));
-  try{
-   const r=await fetch('/api/dashboard/'+id,{cache:'no-store'});
-   const d=await r.json();
-   if(!r.ok)throw Error(typeof d.detail==='string'?d.detail:(d.error||'Não foi possível consultar este servidor'));
-   setChecks(previous=>({...previous,[id]:{status:'installed',data:d}}));
-  }catch(e){
-   setChecks(previous=>({...previous,[id]:{
-    status:'error',
-    message:e instanceof Error?e.message:'Erro temporário'
-   }}));
-  }
- },[]);
+ const [payload,setPayload]=useState<Payload|null>(null);
+ const [loading,setLoading]=useState(true);
+ const [refreshing,setRefreshing]=useState(false);
+ const [notice,setNotice]=useState('');
+ const [search,setSearch]=useState('');
+ const [filter,setFilter]=useState<Filter>('all');
+ const [drafts,setDrafts]=useState<Record<string,Mode>>({});
+ const [savingId,setSavingId]=useState<string|null>(null);
+ const [feedback,setFeedback]=useState<Record<string,Feedback>>({});
+ const requestId=useRef(0);
 
  const load=useCallback(async()=>{
-  setError('');
-  const response=await fetch('/api/auth/guilds',{cache:'no-store'});
-  if(response.status===401){window.location.replace('/entrar');return;}
-  const body=await response.json();
-  if(!response.ok)throw Error(body.error||'Não foi possível consultar os servidores');
-  const value=body as GuildResponse;
-  setData(value);
-  setChecks({});
-  for(const guild of value.guilds){
-   if(guild.installed===true)void loadDetail(guild.id);
+  const id=++requestId.current;
+  if(!payload)setLoading(true);
+  else setRefreshing(true);
+  setNotice('');
+  try{
+   const response=await fetch('/api/auth/guilds',{cache:'no-store'});
+   if(response.status===401){window.location.assign('/entrar');return;}
+   const body=await response.json();
+   if(!response.ok)throw new Error(body.error||'A consulta aos servidores falhou.');
+   if(!body.verified||!Array.isArray(body.guilds))throw new Error('Dados de servidores indisponíveis.');
+   if(id!==requestId.current)return;
+   const next=body as Payload;
+   setPayload(next);
+   const current:Record<string,Mode>={};
+   for(const guild of next.guilds){
+    if(guild.installed&&guild.divulgacao)current[guild.id]=guild.divulgacao.modo;
+   }
+   setDrafts(current);
+  }catch(e){
+   if(id!==requestId.current)return;
+   setNotice(e instanceof Error?e.message:'Não foi possível atualizar os servidores.');
+  }finally{
+   if(id===requestId.current){setLoading(false);setRefreshing(false);}
   }
- },[loadDetail]);
+ },[payload]);
 
  useEffect(()=>{
-  let cancelled=false;
-  (async()=>{try{await load();}catch(e){
-   if(!cancelled)setError(e instanceof Error?e.message:'Erro ao consultar servidores');
-  }})();
-  return()=>{cancelled=true;};
- },[load]);
+  void load();
+  return()=>{requestId.current++};
+  // One request on mount: user can refresh explicitly to avoid duplicate Discord calls.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[]);
 
- const update=async(id:string,modo:string)=>{
-  setSaving(id);
-  setFeedback(prev=>({...prev,[id]:''}));
+ const save=async(guild:Guild)=>{
+  const d=guild.divulgacao;
+  const mode=drafts[guild.id];
+  if(!d||!mode||mode===d.modo||savingId)return;
+  setSavingId(guild.id);
+  setFeedback(previous=>({...previous,[guild.id]:{text:'',ok:false}}));
   try{
-   const r=await fetch('/api/dashboard/'+id+'/modo',{
-    method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({modo})
+   const response=await fetch('/api/dashboard/'+guild.id+'/modo',{
+    method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({modo:mode}),cache:'no-store',
    });
-   const result=await r.json();
-   if(!r.ok)throw Error(result.detail||result.error||'Não foi possível guardar');
-   setChecks(prev=>({...prev,[id]:{status:'installed',data:result}}));
-   setFeedback(prev=>({...prev,[id]:'Modo guardado na Shayon com sucesso ♡'}));
+   const body=await response.json();
+   if(!response.ok)throw new Error(body.detail||body.error||'Não foi possível guardar o modo.');
+   const updated=body as Settings;
+   setPayload(old=>old?{...old,guilds:old.guilds.map(g=>g.id===guild.id?{...g,divulgacao:updated}:g)}:old);
+   setDrafts(old=>({...old,[guild.id]:updated.modo}));
+   setFeedback(old=>({...old,[guild.id]:{ok:true,text:'Modo guardado na Shayon.'}}));
   }catch(e){
-   setFeedback(prev=>({...prev,[id]:e instanceof Error?e.message:'Erro ao guardar'}));
-  }finally{setSaving(null);}
+   setFeedback(old=>({...old,[guild.id]:{ok:false,text:e instanceof Error?e.message:'Erro ao guardar.'}}));
+  }finally{setSavingId(null);}
  };
 
- return <main className="wrap">
-  <div className="subhero">
-   <div className="eyebrow">SHAYON · SERVIDORES</div>
-   <h1>Os teus <em>servidores.</em></h1>
-   <p>Servidor e permissões confirmados pelo Discord. Dados reais da divulgação.</p>
+ const guilds=payload?.guilds||[];
+ const active=guilds.filter(g=>g.installed);
+ const inactive=guilds.filter(g=>!g.installed);
+ const match=(g:Guild)=>g.name.toLocaleLowerCase('pt-PT').includes(search.trim().toLocaleLowerCase('pt-PT'));
+ const showActive=filter!=='other'?active.filter(match):[];
+ const showInactive=filter!=='installed'?inactive.filter(match):[];
+ const count=showActive.length+showInactive.length;
+
+ return <main className="wrap sg-page">
+  <div className="sg-top">
+   <div>
+    <div className="eyebrow">SHAYON CONTROL CENTER / DISCORD</div>
+    <h1>Os teus <em>servidores.</em></h1>
+    <p>Gestão da Divulgação com dados reais, diretamente do bot.</p>
+   </div>
+   <button className="sg-refresh" onClick={()=>void load()} disabled={loading||refreshing} aria-label="Atualizar servidores">
+    <RefreshCw size={16} className={refreshing?'sg-spin':''}/>
+    {refreshing?'A atualizar…':'Atualizar'}
+   </button>
   </div>
-  <div className="page-body">
-   {error&&<div className="content-card"><p>{error}</p><button className="button" onClick={()=>void load().catch(e=>setError(String(e)))}>Tentar novamente</button></div>}
-   {!error&&!data&&<div className="content-card">A consultar os teus servidores…</div>}
-   {data&&<>
-    <div className="content-card">
-     <h2>Olá, {data.username} ♡</h2>
-     <p>{data.verified
-      ?'A Shayon identificou os servidores onde está instalada. A gestão só fica disponível para administradores autorizados.'
-      :'A verificação de instalação está temporariamente indisponível. As configurações continuam protegidas.'}
-     </p>
-     <button className="button" onClick={()=>void load().catch(e=>setError(String(e)))}>
-      Atualizar servidores
-     </button>
+
+  {notice&&<div className="sg-alert" role="alert">
+   <div><strong>Não foi possível atualizar agora.</strong><p>{notice}{payload?' Os dados anteriores continuam visíveis.':''}</p></div>
+   <button onClick={()=>void load()} disabled={refreshing}>Tentar novamente</button>
+  </div>}
+
+  {loading&&!payload&&<div className="sg-loading"><RefreshCw size={20} className="sg-spin"/> A verificar os teus servidores…</div>}
+
+  {payload&&<>
+   <div className="sg-summary">
+    <div className="sg-user"><span className="sg-avatar"><ShieldCheck size={21}/></span>
+     <div><strong>Olá, {payload.username} ♡</strong><span>Servidores com autorização confirmada pelo Discord</span></div>
     </div>
-    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(285px,1fr))',gap:15,marginTop:20}}>
-     {data.guilds.map(g=>{
-      const status=checks[g.id],details=status?.data;
-      return <section className="content-card" key={g.id} style={{margin:0}}>
-       <h2 style={{fontSize:22,overflowWrap:'anywhere'}}>{g.name}</h2>
-       <p style={{fontSize:12}}>{g.owner?'Proprietária/o':'Permissão de gestão confirmada'}</p>
-       {g.installed===false&&<p>Shayon não instalada neste servidor.</p>}
-       {g.installed===null&&<p>A instalação da Shayon não pôde ser verificada.</p>}
-       {g.installed===true&&status?.status==='loading'&&<p>♡ Shayon instalada · A carregar definições…</p>}
-       {g.installed===true&&status?.status==='error'&&<>
-        <p>♡ Shayon instalada · {status.message||'Não foi possível obter as definições'}</p>
-        <button className="button" onClick={()=>void loadDetail(g.id)}>Tentar novamente</button>
-       </>}
-       {details&&<>
-        <p style={{fontSize:13}}>♡ Shayon instalada · Divulgação {details.ativo?'ativa':'pausada'}</p>
-        <div style={{borderTop:'1px solid #51404e',paddingTop:12}}>
-         <p style={{fontSize:13}}>Anúncio: {details.anuncio_configurado?details.nome:'Não configurado'}</p>
-         <p style={{fontSize:13}}>Enviados: {details.enviados} · Recebidos: {details.recebidos}</p>
-         <p style={{fontSize:13}}>Canal de receção: {details.canal_configurado?'Configurado':'Por configurar'}</p>
-         <label style={{display:'block',marginTop:12,marginBottom:5}} htmlFor={'mode-'+g.id}>Modo de divulgação</label>
-         <select id={'mode-'+g.id} value={details.modo}
-          disabled={saving===g.id||!details.anuncio_configurado}
-          onChange={e=>void update(g.id,e.target.value)}
-          style={{width:'100%',padding:12,background:'#261b28',color:'white',border:'1px solid #795267',borderRadius:7}}>
-          <option value="mutua">Divulgação mútua</option>
-          <option value="so_divulgar">Apenas divulgar</option>
-         </select>
-         {!details.anuncio_configurado&&<p style={{fontSize:12}}>Regista primeiro o anúncio no Discord para ativar as opções.</p>}
-         {feedback[g.id]&&<p role="status" style={{fontSize:13}}>{feedback[g.id]}</p>}
+    <div className="sg-counters">
+     <div><strong>{guilds.length}</strong><span>Administráveis</span></div>
+     <div><strong>{active.length}</strong><span>Com Shayon</span></div>
+     <div><strong>{inactive.length}</strong><span>Sem Shayon</span></div>
+    </div>
+   </div>
+
+   <div className="sg-toolbar">
+    <div className="sg-filter" role="group" aria-label="Filtrar servidores">
+     {([
+      ['all','Todos'],['installed','Com Shayon'],['other','Sem Shayon'],
+     ] as [Filter,string][]).map(([value,label])=>
+      <button key={value} className={filter===value?'sg-selected':''} onClick={()=>setFilter(value)} aria-pressed={filter===value}>{label}</button>
+     )}
+    </div>
+    <label className="sg-search"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Pesquisar servidor" aria-label="Pesquisar servidor"/></label>
+   </div>
+
+   {showActive.length>0&&<section className="sg-section">
+    <div className="sg-section-heading"><div><h2><Server size={19}/> Com a Shayon instalada</h2><p>Definições da rede de divulgação</p></div><span>{showActive.length} {showActive.length===1?'servidor':'servidores'}</span></div>
+    <div className="sg-installed-grid">
+     {showActive.map(g=>{
+      const d=g.divulgacao;
+      const draft=drafts[g.id]||d?.modo||'mutua';
+      const changed=Boolean(d&&draft!==d.modo);
+      const saving=savingId===g.id;
+      return <article className="sg-card" key={g.id}>
+       <div className="sg-card-head">
+        <div className="sg-server-icon"><Server size={21}/></div>
+        <div className="sg-server-name"><h3 title={g.name}>{g.name}</h3><span>{g.owner?'Proprietária/o':'Pode gerir servidor'}</span></div>
+        <span className="sg-connected"><Check size={14}/> Instalada</span>
+       </div>
+       {!d?<div className="sg-no-data">Ainda não foi possível obter os dados da Divulgação.</div>:<>
+        <div className="sg-status"><span className={'sg-dot '+(d.ativo?'sg-dot-on':'')}/><span>Divulgação {d.ativo?'ativa':'pausada'}</span></div>
+        <div className="sg-stats">
+         <div><small>Enviados</small><strong>{d.enviados}</strong></div>
+         <div><small>Recebidos</small><strong>{d.recebidos}</strong></div>
+        </div>
+        <div className="sg-details">
+         <div><span>Anúncio</span><strong title={d.nome||''}>{d.anuncio_configurado?(d.nome||'Configurado'):'Por configurar'}</strong></div>
+         <div><span>Canal de receção</span><strong>{d.canal_configurado?'Configurado':'Por configurar'}</strong></div>
+        </div>
+        <div className="sg-settings">
+         <label htmlFor={'sg-mode-'+g.id}><SlidersHorizontal size={15}/> Modo de divulgação</label>
+         <div className="sg-control">
+          <div className="sg-select-wrap"><select id={'sg-mode-'+g.id} value={draft}
+            onChange={e=>{setDrafts(old=>({...old,[g.id]:e.target.value as Mode}));setFeedback(old=>({...old,[g.id]:{ok:true,text:''}}));}}
+            disabled={saving||!d.anuncio_configurado}>
+            <option value="mutua">Divulgação mútua</option>
+            <option value="so_divulgar">Apenas divulgar</option>
+           </select><ChevronDown size={16}/></div>
+          <button className="sg-save" onClick={()=>void save(g)} disabled={!changed||saving||!d.anuncio_configurado}>
+           {saving?'A guardar…':'Guardar'}
+          </button>
+         </div>
+         {!d.anuncio_configurado&&<p className="sg-hint">Configura primeiro o anúncio no Discord.</p>}
+         {changed&&<p className="sg-hint">Alteração ainda não guardada.</p>}
+         {feedback[g.id]?.text&&<p className={feedback[g.id].ok?'sg-feedback':'sg-feedback sg-fail'} role="status">{feedback[g.id].text}</p>}
         </div>
        </>}
-      </section>;
+      </article>;
      })}
     </div>
-   </>}
-  </div>
+   </section>}
+
+   {showInactive.length>0&&<section className="sg-section">
+    <div className="sg-section-heading"><div><h2><Server size={19}/> Outros servidores</h2><p>Onde ainda não tens a Shayon instalada</p></div><span>{showInactive.length} {showInactive.length===1?'servidor':'servidores'}</span></div>
+    <div className="sg-other-grid">
+     {showInactive.map(g=><div className="sg-other" key={g.id}>
+      <span className="sg-other-icon"><Server size={17}/></span>
+      <div><strong title={g.name}>{g.name}</strong><span>{g.owner?'Proprietária/o':'Pode gerir servidor'} · Shayon não instalada</span></div>
+      <ArrowRight size={15} className="sg-other-arrow"/>
+     </div>)}
+    </div>
+   </section>}
+
+   {count===0&&<div className="sg-empty">Não encontrámos servidores para este filtro.</div>}
+   <p className="sg-footnote"><Clock3 size={14}/> Dados consultados ao Discord e à base da Shayon. Cada alteração de modo só é enviada quando carregas em Guardar.</p>
+  </>}
  </main>;
 }
