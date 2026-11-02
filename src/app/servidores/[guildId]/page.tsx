@@ -51,7 +51,11 @@ export default function GuildPanel(){
    if(m.status===401||a.status===401||g.status===401){location.assign('/entrar');return;}
    const [md,ad,gd]=await Promise.all([m.json(),a.json(),g.json()]);
    if(!m.ok||!a.ok)throw Error(md.detail||md.error||ad.detail||ad.error||'Não foi possível carregar o painel.');
-   setModules(md as Modules);setModeration(md.moderacao?{...md.moderacao}:null);
+   setModules(md as Modules);setModeration(md.moderacao?{...md.moderacao}:{
+    links_ativos:false,spam_ativo:false,max_mensagens:6,janela_segundos:8,
+    apagar_mensagem:true,timeout_minutos:0,punicao_progressiva:false,
+    palavras_count:0,automated_punishments_verified:false,
+   });
    setReception(md.rececao?{...md.rececao}:null);
    setAdvertising(ad as Ad);setMode(ad.modo);
    const found=gd.guilds?.find((x:{id:string})=>x.id===id);
