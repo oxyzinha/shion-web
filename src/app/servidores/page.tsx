@@ -1,7 +1,7 @@
 'use client';
 
 import {useCallback,useEffect,useRef,useState} from 'react';
-import {ArrowRight,Check,ChevronDown,Clock3,RefreshCw,Search,Server,ShieldCheck,SlidersHorizontal} from 'lucide-react';
+import {Check,ChevronDown,Clock3,RefreshCw,Search,Server,ShieldCheck,SlidersHorizontal} from 'lucide-react';
 import './servidores.css';
 
 type Mode='mutua'|'so_divulgar';
@@ -14,7 +14,6 @@ type Guild={id:string;name:string;owner:boolean;installed:boolean;divulgacao?:Se
 type Payload={username:string;guilds:Guild[];verified:boolean;checked_at:number};
 type Feedback={text:string;ok:boolean};
 type Filter='all'|'installed'|'other';
-const modeLabel=(mode:Mode)=>mode==='mutua'?'Divulgação mútua':'Apenas divulgar';
 
 export default function Servidores(){
  const [payload,setPayload]=useState<Payload|null>(null);
@@ -88,9 +87,10 @@ export default function Servidores(){
  const active=guilds.filter(g=>g.installed);
  const inactive=guilds.filter(g=>!g.installed);
  const match=(g:Guild)=>g.name.toLocaleLowerCase('pt-PT').includes(search.trim().toLocaleLowerCase('pt-PT'));
- const showActive=filter!=='other'?active.filter(match):[];
- const showInactive=filter!=='installed'?inactive.filter(match):[];
- const count=showActive.length+showInactive.length;
+ const showAll=filter==='all'?guilds.filter(match):[];
+ const showActive=filter==='installed'?active.filter(match):[];
+ const showInactive=filter==='other'?inactive.filter(match):[];
+ const count=showAll.length+showActive.length+showInactive.length;
 
  return <main className="wrap sg-page">
   <div className="sg-top">
@@ -127,13 +127,44 @@ export default function Servidores(){
    <div className="sg-toolbar">
     <div className="sg-filter" role="group" aria-label="Filtrar servidores">
      {([
-      ['all','Todos'],['installed','Com Shayon'],['other','Sem Shayon'],
+      ['all','Todos ('+guilds.length+')'],['installed','Com Shayon ('+active.length+')'],['other','Sem Shayon ('+inactive.length+')'],
      ] as [Filter,string][]).map(([value,label])=>
       <button key={value} className={filter===value?'sg-selected':''} onClick={()=>setFilter(value)} aria-pressed={filter===value}>{label}</button>
      )}
     </div>
     <label className="sg-search"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Pesquisar servidor" aria-label="Pesquisar servidor"/></label>
    </div>
+
+   <div className="sg-view-title" role="status" aria-live="polite">
+    <div>
+     <strong>{filter==='all'?'Visão geral':filter==='installed'?'Gestão da Divulgação':'Servidores sem Shayon'}</strong>
+     <span>{filter==='all'
+      ?'Todos os servidores numa lista compacta. Escolhe «Com Shayon» para configurar a divulgação.'
+      :filter==='installed'?'Apenas os servidores onde o bot está instalado, com as configurações completas.'
+       :'Apenas os servidores onde ainda não está instalada a Shayon.'}</span>
+    </div>
+    <span className="sg-visible-count">{count} de {guilds.length}</span>
+   </div>
+
+   {showAll.length>0&&<section className="sg-section">
+    <div className="sg-overview-grid">
+     {showAll.map(g=><article className={'sg-overview-card '+(g.installed?'sg-overview-installed':'')} key={g.id}>
+      <span className="sg-overview-icon"><Server size={20}/></span>
+      <div className="sg-overview-body">
+       <h3 title={g.name}>{g.name}</h3>
+       <span>{g.owner?'Proprietária/o':'Pode gerir servidor'}</span>
+       <div className="sg-overview-meta">
+        <span className={g.installed?'sg-overview-tag sg-tag-yes':'sg-overview-tag'}>
+         {g.installed?'✓ Shayon instalada':'Sem Shayon'}
+        </span>
+        {g.installed&&g.divulgacao&&<small>{g.divulgacao.ativo?'Divulgação ativa':'Divulgação pausada'}</small>}
+       </div>
+      </div>
+      {g.installed&&<button className="sg-overview-manage" type="button"
+       onClick={()=>setFilter('installed')}>Gerir</button>}
+     </article>)}
+    </div>
+   </section>}
 
    {showActive.length>0&&<section className="sg-section">
     <div className="sg-section-heading"><div><h2><Server size={19}/> Com a Shayon instalada</h2><p>Definições da rede de divulgação</p></div><span>{showActive.length} {showActive.length===1?'servidor':'servidores'}</span></div>
@@ -188,7 +219,7 @@ export default function Servidores(){
      {showInactive.map(g=><div className="sg-other" key={g.id}>
       <span className="sg-other-icon"><Server size={17}/></span>
       <div><strong title={g.name}>{g.name}</strong><span>{g.owner?'Proprietária/o':'Pode gerir servidor'} · Shayon não instalada</span></div>
-      <ArrowRight size={15} className="sg-other-arrow"/>
+      <span className="sg-other-arrow">Sem bot</span>
      </div>)}
     </div>
    </section>}
