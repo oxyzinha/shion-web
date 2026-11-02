@@ -1,6 +1,7 @@
 'use client';
 
 import {useCallback,useEffect,useRef,useState} from 'react';
+import Link from 'next/link';
 import {Check,ChevronDown,Clock3,RefreshCw,Search,Server,ShieldCheck,SlidersHorizontal} from 'lucide-react';
 import './servidores.css';
 
@@ -160,8 +161,7 @@ export default function Servidores(){
         {g.installed&&g.divulgacao&&<small>{g.divulgacao.ativo?'Divulgação ativa':'Divulgação pausada'}</small>}
        </div>
       </div>
-      {g.installed&&<button className="sg-overview-manage" type="button"
-       onClick={()=>setFilter('installed')}>Gerir</button>}
+      {g.installed&&<Link className="sg-overview-manage" href={'/servidores/'+g.id}>Configurar</Link>}
      </article>)}
     </div>
    </section>}
@@ -180,6 +180,7 @@ export default function Servidores(){
         <div className="sg-server-name"><h3 title={g.name}>{g.name}</h3><span>{g.owner?'Proprietária/o':'Pode gerir servidor'}</span></div>
         <span className="sg-connected"><Check size={14}/> Instalada</span>
        </div>
+       <Link href={'/servidores/'+g.id} className="sg-overview-manage" style={{display:'inline-flex',marginTop:15}}>Abrir painel completo</Link>
        {!d?<div className="sg-no-data">Ainda não foi possível obter os dados da Divulgação.</div>:<>
         <div className="sg-status"><span className={'sg-dot '+(d.ativo?'sg-dot-on':'')}/><span>Divulgação {d.ativo?'ativa':'pausada'}</span></div>
         <div className="sg-stats">
