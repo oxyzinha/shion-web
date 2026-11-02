@@ -43,16 +43,16 @@ export default function GuildPanel(){
  async function refresh(){
   setLoading(true);setError('');
   try{
-   const [m,g]=await Promise.all([
-    fetch('/api/dashboard/'+id+'/modules',{cache:'no-store'}),
-    fetch('/api/auth/guilds',{cache:'no-store'}),
-   ]);
-   if(m.status===401||g.status===401){location.assign('/entrar');return;}
-   const [md,gd]=await Promise.all([m.json(),g.json()]);
-   if(!m.ok||!g.ok)throw Error(md.detail||md.error||gd.detail||gd.error||'Não foi possível carregar o painel.');
-   const found=gd.guilds?.find((x:{id:string})=>x.id===id);
-   if(!found||!found.installed||!found.divulgacao)throw Error('A Shayon não está instalada neste servidor ou já não tens autorização.');
-   const ad=found.divulgacao as Ad;
+   const response=await fetch('/api/dashboard/'+id+'/full',{cache:'no-store'});
+   if(response.status===401){location.assign('/entrar');return;}
+   const body=await response.json();
+   if(!response.ok){
+    throw Error(body.detail||body.error||'Não foi possível confirmar as permissões neste momento.');
+   }
+   if(!body.guild?.installed||!body.divulgacao||!body.modules)
+    throw Error('O painel não recebeu configurações válidas. Tenta atualizar.');
+   const md=body.modules as Modules;
+   const ad=body.divulgacao as Ad;
    setModules(md as Modules);setModeration(md.moderacao?{...md.moderacao}:{
     links_ativos:false,spam_ativo:false,max_mensagens:6,janela_segundos:8,
     apagar_mensagem:true,timeout_minutos:0,punicao_progressiva:false,
@@ -60,7 +60,7 @@ export default function GuildPanel(){
    });
    setReception(md.rececao?{...md.rececao}:null);
    setAdvertising(ad as Ad);setMode(ad.modo);
-   setServerName(found?.name||'Servidor Discord');
+   setServerName(body.guild.name||'Servidor Discord');
   }catch(e){setError(e instanceof Error?e.message:'Erro de ligação');}
   finally{setLoading(false);}
  }
@@ -111,7 +111,7 @@ export default function GuildPanel(){
    <button className="sh-refresh" onClick={()=>void refresh()} disabled={loading||saving}><RefreshCw size={15}/> Atualizar</button>
   </div>
   {loading&&<div className="sh-notice">A carregar configurações reais…</div>}
-  {error&&<div className="sh-notice sh-error" role="alert">{error}</div>}
+  {error&&<div className="sh-notice sh-error" role="alert"><span>{error}</span><button className="sh-refresh" onClick={()=>void refresh()} disabled={loading||saving} style={{marginLeft:'auto'}}>Tentar novamente</button></div>}
   {info&&<div className="sh-notice sh-success" role="status"><CheckCircle2 size={17}/>{info}</div>}
   {modules&&!loading&&<div className="sh-frame">
    <nav className="sh-menu" aria-label="Funcionalidades">
