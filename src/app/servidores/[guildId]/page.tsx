@@ -43,14 +43,16 @@ export default function GuildPanel(){
  async function refresh(){
   setLoading(true);setError('');
   try{
-   const [m,a,g]=await Promise.all([
+   const [m,g]=await Promise.all([
     fetch('/api/dashboard/'+id+'/modules',{cache:'no-store'}),
-    fetch('/api/dashboard/'+id,{cache:'no-store'}),
     fetch('/api/auth/guilds',{cache:'no-store'}),
    ]);
-   if(m.status===401||a.status===401||g.status===401){location.assign('/entrar');return;}
-   const [md,ad,gd]=await Promise.all([m.json(),a.json(),g.json()]);
-   if(!m.ok||!a.ok)throw Error(md.detail||md.error||ad.detail||ad.error||'Não foi possível carregar o painel.');
+   if(m.status===401||g.status===401){location.assign('/entrar');return;}
+   const [md,gd]=await Promise.all([m.json(),g.json()]);
+   if(!m.ok||!g.ok)throw Error(md.detail||md.error||gd.detail||gd.error||'Não foi possível carregar o painel.');
+   const found=gd.guilds?.find((x:{id:string})=>x.id===id);
+   if(!found||!found.installed||!found.divulgacao)throw Error('A Shayon não está instalada neste servidor ou já não tens autorização.');
+   const ad=found.divulgacao as Ad;
    setModules(md as Modules);setModeration(md.moderacao?{...md.moderacao}:{
     links_ativos:false,spam_ativo:false,max_mensagens:6,janela_segundos:8,
     apagar_mensagem:true,timeout_minutos:0,punicao_progressiva:false,
@@ -58,7 +60,6 @@ export default function GuildPanel(){
    });
    setReception(md.rececao?{...md.rececao}:null);
    setAdvertising(ad as Ad);setMode(ad.modo);
-   const found=gd.guilds?.find((x:{id:string})=>x.id===id);
    setServerName(found?.name||'Servidor Discord');
   }catch(e){setError(e instanceof Error?e.message:'Erro de ligação');}
   finally{setLoading(false);}
