@@ -1,10 +1,87 @@
 'use client';
-import {useMemo,useState} from 'react';
+
+import {useEffect,useMemo,useState} from 'react';
 import {AreaChart,Area,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer} from 'recharts';
-import {demoMembers,demoSeries,demoStats} from '@/lib/demo';
-import {modules} from '@/lib/content';
-import {ArrowUpRight} from 'lucide-react';
-type Period='7d'|'30d'|'90d';
+
+type Overview={
+  servers:number;publications:number;tickets_open:number;tickets_closed:number;
+  checked_at:string;daily:{date:string;count:number}[];
+};
+type Period=7|30|90;
 const tabs=['Visão Geral','Servidores','Divulgação','Membros','Analytics','Boas-vindas','Cargos Automáticos','Tickets','AutoMod','Música','Configurações','Histórico / Logs'];
-const unavailable=['AutoMod','Música'];
-export default function Dashboard(){const [tab,setTab]=useState('Visão Geral');const [period,setPeriod]=useState<Period>('30d');const [search,setSearch]=useState('');const [sort,setSort]=useState<'messages'|'images'>('messages');const data=useMemo(()=>demoSeries[period].map((value,i)=>({day:`${i+1}`,value})),[period]);const members=demoMembers.filter(m=>m.name.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>b[sort]-a[sort]);return <main className="dashboard-shell"><aside className="dashboard-sidebar"><p className="sidebar-title">PAINEL ADMINISTRATIVO</p>{tabs.map(t=><button key={t} className={'side-link '+(tab===t?'active':'')} disabled={unavailable.includes(t)} onClick={()=>setTab(t)}>{t}{unavailable.includes(t)&&<small>Em breve</small>}</button>)}</aside><section className="dashboard-main"><div className="dashboard-top"><div><div className="eyebrow">SHION CONTROL CENTER</div><h1>{tab}</h1><p>Pré-visualização de interface · nenhuma alteração afeta o Discord</p></div><span className="demo-flag">✦ MODO DEMONSTRAÇÃO</span></div>{tab==='Visão Geral'||tab==='Analytics'?<><div className="dashboard-top"><div className="periods">{(['7d','30d','90d'] as const).map(p=><button className={p===period?'selected':''} key={p} onClick={()=>setPeriod(p)}>{p==='7d'?'7 dias':p==='30d'?'30 dias':'90 dias'}</button>)}</div><span style={{fontSize:11,color:'#a894a6'}}>Intervalo personalizado disponível após integração</span></div><div className="metric-grid">{demoStats.map(s=><div className="metric" key={s.label}><span>{s.label}</span><strong>{s.value}</strong><small>{s.delta} · dados fictícios</small></div>)}</div><div className="two-panels"><div className="chart-panel"><h2>Atividade da comunidade</h2><p>Valores demonstrativos para testar filtros e interação</p><div style={{height:280,width:'100%'}}><ResponsiveContainer><AreaChart data={data}><defs><linearGradient id="rosefill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#d78ead" stopOpacity={.37}/><stop offset="100%" stopColor="#d78ead" stopOpacity={0}/></linearGradient></defs><CartesianGrid stroke="#372c38" vertical={false}/><XAxis dataKey="day" tick={{fill:'#a895a7',fontSize:10}} axisLine={false}/><YAxis tick={{fill:'#a895a7',fontSize:10}} axisLine={false}/><Tooltip contentStyle={{background:'#231924',border:'1px solid #80526a',color:'#fff'}}/><Area type="monotone" dataKey="value" name="Atividade (demo)" stroke="#d78ead" strokeWidth={2.5} fill="url(#rosefill)"/></AreaChart></ResponsiveContainer></div></div><div className="chart-panel"><h2>Tickets por categoria</h2><p>Distribuição demonstrativa</p><div className="bar-list">{[['Suporte geral','76%'],['Parcerias','51%'],['Reportar erros','35%'],['Denúncias','22%']].map(([t,w])=><div key={t}>{t}<b style={{width:w}}/></div>)}</div></div></div></>:null}{tab==='Membros'||tab==='Visão Geral'?<div className="chart-panel"><h2>Atividade por membro</h2><p>Lista ilustrativa. Nenhum dado pessoal real é utilizado.</p><div className="table-controls"><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Pesquisar membro (demonstração)" aria-label="Pesquisar membros"/><div className="periods" style={{display:'inline-flex',marginLeft:12}}><button onClick={()=>setSort('messages')} className={sort==='messages'?'selected':''}>Ordenar por mensagens</button><button onClick={()=>setSort('images')} className={sort==='images'?'selected':''}>Por imagens</button></div></div><div className="table-scroll"><table className="members-table"><thead><tr><th>Membro</th><th>Mensagens</th><th>Imagens</th><th>Entrada</th></tr></thead><tbody>{members.map(m=><tr key={m.name}><td><span className="mini-avatar">{m.name[0].toUpperCase()}</span>{m.name}</td><td>{m.messages}</td><td>{m.images}</td><td>{m.joined}</td></tr>)}</tbody></table>{members.length===0&&<p>Sem resultados.</p>}</div></div>:null}{tab!=='Visão Geral'&&tab!=='Analytics'&&tab!=='Membros'?<div className="content-card"><div className="eyebrow">INTERFACE EM PREPARAÇÃO</div><h2>{tab}</h2><p>Esta área estará ligada à API da Shion numa versão futura. Por segurança, não existem botões de configuração simulados nem alterações reais nesta demonstração.</p>{modules.find(m=>m.title.toLowerCase().includes(tab.toLowerCase()))?.status==='planned'&&<span className="status status-planned">Em desenvolvimento</span>}<p style={{marginTop:18}}><a href="/roadmap" className="text-link">Ver roadmap <ArrowUpRight size={16}/></a></p></div>:null}<div className="note">Todos os números e nomes deste dashboard são <strong>fictícios</strong>. O site não consulta servidores, membros ou mensagens reais.</div></section></main>}
+
+export default function Dashboard(){
+ const [data,setData]=useState<Overview|null>(null);
+ const [error,setError]=useState('');
+ const [pending,setPending]=useState(true);
+ const [tab,setTab]=useState('Visão Geral');
+ const [period,setPeriod]=useState<Period>(30);
+
+ useEffect(()=>{
+   let alive=true;
+   const load=async()=>{
+     try{
+       const response=await fetch('/api/overview',{cache:'no-store'});
+       if(!response.ok)throw new Error('Serviço de dados indisponível');
+       const value=await response.json() as Overview;
+       if(alive){setData(value);setError('');}
+     }catch{if(alive){setError('Não foi possível consultar os dados reais neste momento.');setData(null);}}
+     finally{if(alive)setPending(false);}
+   };
+   void load();
+   const interval=setInterval(()=>void load(),60000);
+   return()=>{alive=false;clearInterval(interval);};
+ },[]);
+
+ const chart=useMemo(()=>data?.daily.slice(-period).map(item=>({
+   day:item.date.slice(5),value:item.count
+ }))??[],[data,period]);
+ const metrics=[
+   {label:'Servidores na rede',value:data?.servers},
+   {label:'Publicações registadas',value:data?.publications},
+   {label:'Tickets abertos',value:data?.tickets_open},
+   {label:'Tickets encerrados',value:data?.tickets_closed},
+ ];
+ const overview=['Visão Geral','Analytics','Divulgação','Servidores','Tickets'].includes(tab);
+ return <main className="dashboard-shell">
+  <aside className="dashboard-sidebar">
+   <p className="sidebar-title">SHAYON CONTROL CENTER</p>
+   {tabs.map(t=><button key={t} className={'side-link '+(tab===t?'active':'')} onClick={()=>setTab(t)}>{t}</button>)}
+  </aside>
+  <section className="dashboard-main">
+   <div className="dashboard-top"><div>
+     <div className="eyebrow">SHAYON · DADOS REAIS</div>
+     <h1>{tab}</h1><p>Indicadores agregados da Shayon no Discord, atualizados automaticamente.</p>
+    </div><span className="demo-flag">{data?'✦ DADOS VERIFICADOS':'✦ AGUARDANDO DADOS'}</span></div>
+   {pending&&<div className="content-card"><p>A consultar a Shayon…</p></div>}
+   {error&&<div className="content-card"><p>{error}</p></div>}
+   {!pending&&overview&&<>
+    <div className="metric-grid">{metrics.map(m=><div className="metric" key={m.label}>
+      <span>{m.label}</span><strong>{m.value===undefined?'—':m.value.toLocaleString('pt-PT')}</strong>
+      <small>{m.value===undefined?'Indisponível':'Registo efetivo do bot'}</small>
+    </div>)}</div>
+    {data&&<>
+     <div className="dashboard-top"><div className="periods">
+      {([7,30,90] as const).map(p=><button key={p} onClick={()=>setPeriod(p)} className={p===period?'selected':''}>{p} dias</button>)}
+     </div><small style={{color:'#bca6b7'}}>Publicações registadas por dia (UTC)</small></div>
+     <div className="chart-panel"><h2>Divulgação da rede</h2>
+      <p>Publicações registadas pela Shayon no intervalo selecionado.</p>
+      <div style={{height:280,width:'100%'}}><ResponsiveContainer>
+       <AreaChart data={chart}><CartesianGrid stroke="#372c38" vertical={false}/>
+        <XAxis dataKey="day" tick={{fill:'#a895a7',fontSize:10}} axisLine={false}/>
+        <YAxis allowDecimals={false} tick={{fill:'#a895a7',fontSize:10}}/>
+        <Tooltip contentStyle={{background:'#231924',border:'1px solid #80526a',color:'#fff'}}/>
+        <Area type="monotone" dataKey="value" name="Publicações" stroke="#d78ead" strokeWidth={2.5} fill="#d78ead" fillOpacity={.2}/>
+       </AreaChart>
+      </ResponsiveContainer></div>
+     </div>
+    </>}
+   </>}
+   {!overview&&<div className="content-card">
+    <div className="eyebrow">INTEGRAÇÃO EM PREPARAÇÃO</div><h2>{tab}</h2>
+    <p>Esta secção exige autenticação com Discord e permissões por servidor antes de apresentar ou alterar dados privados. Não são apresentados números fictícios.</p>
+   </div>}
+   <div className="note">Apenas agregados globais sem identificadores pessoais. Não existem ainda estatísticas históricas fiáveis de mensagens, imagens ou membros. O painel é de leitura e não altera as configurações do Discord.{data&&<> Última consulta: {new Date(data.checked_at).toLocaleString('pt-PT')}.</>}</div>
+  </section>
+ </main>;
+}
