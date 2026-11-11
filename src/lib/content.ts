@@ -6,13 +6,13 @@ export const modules: ShayonModule[] = [
  {slug:'cargos',title:'Cargos automáticos',eyebrow:'AUTOMAÇÃO',description:'Facilita a organização dos membros desde o primeiro momento.',status:'available',icon:'users',details:['Atribuição automática de cargos','Respeito pela hierarquia do Discord','Integração com a verificação de membros']},
  {slug:'tickets',title:'Sistema de tickets',eyebrow:'SUPORTE',description:'Organiza pedidos de suporte, parcerias e denúncias num fluxo privado.',status:'available',icon:'ticket',details:['Categorias de suporte, erros, parcerias e denúncias','Canais privados e equipas autorizadas','Registos, transcrições e encerramento']},
  {slug:'servidor-oficial',title:'Servidor oficial',eyebrow:'GESTÃO',description:'Centraliza regras, apresentações interativas e painéis oficiais.',status:'available',icon:'shield',details:['Publicação de regras','Apresentação interativa','Atualização de mensagens e painéis existentes']},
- {slug:'automod',title:'AutoMod',eyebrow:'SEGURANÇA',description:'Ferramentas de moderação para proteger os espaços da tua comunidade.',status:'planned',icon:'shield',details:['Anti-spam e controlo de links','Proteção contra convites não autorizados','Avisos, sanções progressivas e logs']},
- {slug:'musica',title:'Música',eyebrow:'ENTRETENIMENTO',description:'Controlos de música e filas de reprodução em canais de voz.',status:'planned',icon:'music',details:['Reprodução de fontes autorizadas','Fila e controlos de áudio','Painel musical interativo']},
- {slug:'analytics',title:'Analytics',eyebrow:'INSIGHTS',description:'Compreende o crescimento e a atividade da tua comunidade.',status:'planned',icon:'chart',details:['Entradas, saídas e evolução de membros','Mensagens, imagens e canais mais ativos','Métricas de tickets e moderação']},
+ {slug:'automod',title:'AutoMod',eyebrow:'SEGURANÇA',description:'Ferramentas de moderação para proteger os espaços da tua comunidade.',status:'available',icon:'shield',details:['Anti-spam e controlo de links','Proteção contra convites não autorizados','Avisos, sanções progressivas e logs']},
+ {slug:'musica',title:'Música',eyebrow:'ENTRETENIMENTO',description:'Controlos de música e filas de reprodução em canais de voz.',status:'available',icon:'music',details:['Reprodução de fontes autorizadas','Fila e controlos de áudio','Painel musical interativo']},
+ {slug:'analytics',title:'Analytics',eyebrow:'INSIGHTS',description:'Compreende o crescimento e a atividade da tua comunidade.',status:'available',icon:'chart',details:['Entradas, saídas e evolução de membros','Mensagens, imagens e canais mais ativos','Métricas de tickets e moderação']},
 ];
 export const docs = [
- {title:'Instalação',text:'Quando o convite oficial estiver disponível, adiciona a Shayon com as permissões apropriadas e escolhe os módulos que queres utilizar.'},
- {title:'Primeiros passos',text:'Abre o painel do bot no Discord e consulta as opções disponibilizadas para o teu servidor.'},
+ {title:'Instalação',text:'Usa a página Adicionar para abrir o convite oficial no Discord. Escolhe o servidor, confirma permissões e escreve !shayon no canal de texto.'},
+ {title:'Primeiros passos',text:'Entra no dashboard com Discord e configura os teus servidores. Só quem tem Gerir Servidor pode guardar alterações.'},
  {title:'Divulgação',text:'Seleciona o modo de participação e configura os anúncios e os canais da rede de divulgação.'},
  {title:'Boas-vindas',text:'Define os canais, ativa as mensagens pretendidas e personaliza o texto de entradas e saídas.'},
  {title:'Cargos automáticos',text:'Confirma que o cargo da Shayon está acima dos cargos que deverá atribuir.'},
