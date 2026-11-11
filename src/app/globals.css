@@ -8,3 +8,58 @@
 .official-banner-section{padding-top:85px;padding-bottom:35px}.official-banner-section h2{margin:12px 0 32px}.official-banner-frame{border:1px solid #593749;border-radius:16px;overflow:hidden;box-shadow:0 25px 90px #0009,0 0 75px #d78ead0b;background:#181218}.official-banner-frame img{display:block;width:100%;height:auto}
 .about-official-art{margin-top:28px}.about-official-art img{width:100%;height:auto;border-radius:12px;display:block;border:1px solid #614358}.about-official-art p{font-size:12px;color:#bda7b6;text-align:right;margin:9px 0 0}
 @media(max-width:740px){.official-banner-section{padding-top:65px;padding-bottom:10px}.brand-avatar{height:29px;width:29px}.brand{gap:5px}}
+
+
+/* Shayon authenticated dashboard — Dark Rose */
+.dashboard-live{grid-template-columns:260px minmax(0,1fr);min-height:calc(100vh - 150px)}
+.dashboard-live .dashboard-sidebar{position:relative}
+.dashboard-live .dashboard-main{padding:38px clamp(20px,3.2vw,55px)}
+.profile-chip{display:flex;align-items:center;gap:10px;margin:13px 10px 20px;padding:12px;border-radius:8px;background:#241925;border:1px solid #4e3546;font-size:12px;color:#f4c2d6;overflow:hidden}
+.profile-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-button{margin-top:30px;color:#e8a8c1}
+.guild-grid,.module-selection{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.guild-choice,.module-choice{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;border:1px solid #493548;background:#1f1720;color:#f6eaf1;padding:21px;border-radius:10px;transition:.2s;min-height:135px}
+.guild-choice:hover,.module-choice:hover{border-color:var(--pink);transform:translateY(-2px)}
+.guild-choice>svg:first-child,.module-choice>svg:first-child{color:#e2a0bd}
+.guild-choice>svg:last-child,.module-choice>svg:last-child{position:absolute;right:19px;top:19px;color:#a9829d}
+.guild-choice strong,.module-choice strong{font-size:15px;line-height:1.3}
+.guild-choice small,.module-choice small{font-size:11px;color:#ac9aaa;line-height:1.6}
+.owner-controls{padding:25px;margin-top:35px;border-top:1px solid #514054;background:linear-gradient(110deg,#2a1c2a,#1d1721);border-radius:8px}
+.owner-controls h2{margin:7px 0 11px}
+.owner-state{margin-bottom:15px;font-size:13px;color:#dcb7cf}
+.owner-state strong{color:#fff}
+.config-editor{max-width:930px}
+.config-editor h2{margin:13px 0 8px}
+.editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:30px 0}
+.config-field{min-width:0;padding:18px;background:#1d1720;border:1px solid #3f3040;border-radius:10px}
+.config-field>label{display:block;font-size:13px;color:#f0dce8;font-weight:700;margin-bottom:9px}
+.config-field input:not([type=checkbox]),.config-field textarea,.config-field select,.role-edit-row input,.role-edit-row select{width:100%;min-width:0;color:#fff;background:#130f17;border:1px solid #664961;border-radius:7px;padding:12px 13px;font-size:13px;outline:none}
+.config-field input:focus,.config-field textarea:focus,.config-field select:focus{border-color:#df9dbb;box-shadow:0 0 0 2px #d78ead22}
+.config-field textarea{resize:vertical;min-height:105px}
+.config-field .field-help{display:block;color:#a998a8;font-size:11px;line-height:1.5;margin:-2px 0 12px}
+.config-field.config-switch{display:flex;flex-direction:column;justify-content:center}
+.config-field.config-switch .field-help{margin:5px 0 0 32px}
+.check-line{display:flex!important;align-items:center;gap:12px;margin:0!important;cursor:pointer}
+.check-line input,.role-checklist input{width:18px;height:18px;accent-color:#d78ead;flex-shrink:0}
+.role-checklist{display:flex;flex-wrap:wrap;gap:11px;max-height:230px;overflow:auto}
+.role-checklist label{display:flex;align-items:center;gap:7px;padding:7px 11px;background:#271d29;border:1px solid #513a50;border-radius:6px;color:#e9d8e2;font-size:12px}
+.role-edit-row{display:grid;grid-template-columns:1.15fr 1fr 110px auto;gap:7px;align-items:center}
+.role-edit-row input,.role-edit-row select{padding:9px!important}
+.editor-stack{display:flex;flex-direction:column;gap:12px}
+.config-field:has(.editor-stack){grid-column:1/-1}
+.form-actions{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0 25px}
+.icon-action{border:0;background:transparent;color:#e4adca;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;padding:7px}
+.icon-action:hover{background:#3b2538}
+.discord-command{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:14px 17px;border:1px solid #534254;border-radius:9px;background:#1c1520;margin-top:24px}
+.discord-command>span{font-size:9px;letter-spacing:.18em;color:#b788a6}
+.discord-command code{font-size:13px;color:#f8c6de;overflow-wrap:anywhere;flex:1}
+.notice-success{display:flex;align-items:center;gap:9px;padding:14px 18px;border:1px solid #63505c;border-radius:7px;margin-bottom:19px;background:#29202a;color:#e8d6de;font-size:13px}
+.dashboard-footnote{margin-top:23px;display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#9d8c9b;font-size:11px}
+.dashboard-footnote a{color:#e5afc6}
+.install-steps{margin-bottom:30px}
+.install-steps p{max-width:360px}
+.content-card code{color:#f1b6d1;background:#38243a;padding:2px 5px;border-radius:4px;font-size:.95em}
+.content-card ol{padding-left:22px;color:#c9b4c6}
+.content-card ol li{padding-bottom:12px}
+@media(max-width:1040px){.dashboard-live{grid-template-columns:210px minmax(0,1fr)}.editor-grid{grid-template-columns:1fr}.role-edit-row{grid-template-columns:1fr 1fr}.role-edit-row .icon-action{justify-self:start}}
+@media(max-width:740px){.dashboard-live{display:flex;flex-direction:column}.dashboard-live .dashboard-sidebar{border-right:0;border-bottom:1px solid #4d364b;padding:18px}.dashboard-live .dashboard-main{padding:22px 17px}.guild-grid,.module-selection{grid-template-columns:1fr}.dashboard-sidebar .side-link{display:inline-flex;width:auto;max-width:100%;margin:4px}.sidebar-title{margin:9px}.role-edit-row{grid-template-columns:1fr}.config-field{padding:15px}}
