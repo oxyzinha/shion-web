@@ -223,14 +223,29 @@ export default function Dashboard(){
    const auth=await jsonFetch<Session>('/api/auth/session');
    setSession(auth);
    if(!auth.authenticated){setGuilds([]);setOwner(null);return;}
-   const summary=await jsonFetch<{guilds:Guild[]}>('/api/dashboard/summary');
-   setGuilds(summary.guilds);
-   const requested=new URLSearchParams(window.location.search).get('guild');
-   if(requested&&summary.guilds.some(g=>g.id===requested&&g.installed)){
-    window.history.replaceState(null,'',window.location.pathname);
-    void loadGuild(requested);
+   // A área da proprietária não depende da consulta de servidores.
+   // Um módulo indisponível não deve esconder o resto do painel.
+   const [guildResult, ownerResult]=await Promise.allSettled([
+    jsonFetch<{guilds:Guild[]}>('/api/dashboard/summary'),
+    jsonFetch<Owner>('/api/dashboard/owner/status'),
+   ]);
+   if(ownerResult.status==='fulfilled' && ownerResult.value.can_manage){
+    setOwner(ownerResult.value);
+   }else{
+    setOwner(null);
    }
-   try{setOwner(await jsonFetch<Owner>('/api/dashboard/owner/status'));}catch{setOwner(null);}
+   if(guildResult.status==='fulfilled'){
+    const found=guildResult.value.guilds;
+    setGuilds(found);
+    const requested=new URLSearchParams(window.location.search).get('guild');
+    if(requested&&found.some(g=>g.id===requested&&g.installed)){
+     window.history.replaceState(null,'',window.location.pathname);
+     void loadGuild(requested);
+    }
+   }else{
+    setGuilds([]);
+    setError('Não foi possível carregar os servidores. Experimenta atualizar a lista.');
+   }
   }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar os servidores.');}
   finally{setLoading(false);}
  },[loadGuild]);
@@ -314,7 +329,6 @@ export default function Dashboard(){
   finally{setOwnerBusy(false);}
  };
  const activeGroup=GROUPS.find(g=>g.id===area);
- const selectedGroupCount=GROUPS.reduce((sum,g)=>sum+g.modules.length,0);
  const heading=activeSection?.title
   ||(area==='servidores'?'Os teus servidores':area==='dona'?'A minha Shayon':area==='geral'?(activeGuild?.name||'Servidor'):activeGroup?.title||'Painel');
  if(loading)return <main className="wrap dashboard-wait"><span className="eyebrow">SHAYON</span><h1>A carregar o <em>painel...</em></h1></main>;
@@ -361,12 +375,16 @@ export default function Dashboard(){
      {g.installed?<button type="button" className="button button-small" onClick={()=>void loadGuild(g.id)}>Gerir <ArrowRight size={15}/></button>
      :<a className="button button-outline button-small" href={inviteTo(g.id)} target="_blank" rel="noopener noreferrer">Adicionar <ArrowUpRight size={15}/></a>}
     </div>)}</div>
-    {guilds.length===0&&<div className="simple-empty">Não encontramos servidores que possas gerir. Confirma que tens a permissão <b>Gerir Servidor</b> no Discord.</div>}
+    {guilds.length===0&&!error&&<div className="simple-empty">Ainda não encontramos servidores disponíveis. Confirma que tens a permissão <b>Gerir Servidor</b> no Discord.</div>}
     <Link className="simple-bottom-link" href="/adicionar">Como adicionar a Shayon <ArrowRight size={15}/></Link>
    </>}
    {area==='dona'&&!activeSection&&<div className="simple-owner-screen">
-    <p className="simple-subtitle">Esta área é exclusiva da proprietária da Shayon.</p>
+    <p className="simple-subtitle">O espaço de administração da própria Shayon, separado dos servidores de outras comunidades.</p>
     {owner?.can_manage&&<>
+     <div className="owner-dashboard-intro"><div className="eyebrow">SHAYON · DARK ROSE</div>
+      <h2>Painel da Shayon ♡</h2>
+      <p>Gere o servidor oficial e a rede global sem misturar as configurações das outras comunidades.</p>
+     </div>
      <div className="simple-module-row" role="group" aria-label="Servidor oficial">
       <div><strong>Servidor oficial</strong><p>Regras, apresentação e páginas da Shayon.</p></div>
       <button className="button button-outline button-small" type="button" disabled={!owner.official_guild_id} onClick={()=>void openOfficial()}>Configurar <ArrowRight size={15}/></button>
