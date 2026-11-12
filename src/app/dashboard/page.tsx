@@ -6,7 +6,7 @@ import {ArrowRight,ArrowUpRight,Check,ChevronRight,Command,ExternalLink,LockKeyh
 import {inviteTo,SHAYON_INVITE} from '@/lib/links';
 
 type Guild={id:string;name:string;installed:boolean;owner:boolean};
-type FieldKind='bool'|'int'|'text'|'channel'|'role'|'roles'|'choice'|'role_items';
+type FieldKind='bool'|'int'|'text'|'channel'|'role'|'roles'|'choice'|'role_items'|'official_pages';
 type Field={key:string;label:string;type:FieldKind;description?:string;min?:number;max?:number;options?:string[];channelType?:number};
 type SectionId='divulgacao'|'moderacao'|'rececao'|'cargos_automaticos'|'cargos_interativos'|'tickets'|'personalidade'|'analytics'|'musica'|'oficial';
 type Section={id:SectionId;title:string;description:string;editable:boolean};
@@ -18,7 +18,7 @@ type Editor={
 };
 type Session={authenticated:boolean;user?:{id:string;username:string;global_name?:string|null}};
 type Owner={official_guild_id:string|null;paused:boolean;can_manage:boolean};
-const FIELDS:Record<Exclude<SectionId,'oficial'>,Field[]>={
+const FIELDS:Record<SectionId,Field[]>={
  divulgacao:[
   {key:'ativo',label:'Participar na rede de divulgação',type:'bool'},
   {key:'modo',label:'Modo de divulgação',type:'choice',options:['mutua','so_divulgar'],description:'Mútua: envia e recebe anúncios. Apenas divulgar: não recebe anúncios.'},
@@ -71,6 +71,9 @@ const FIELDS:Record<Exclude<SectionId,'oficial'>,Field[]>={
  musica:[
   {key:'volume_padrao',label:'Volume inicial (%)',type:'int',min:0,max:100,description:'Aplica-se às novas sessões de música. Quem controla a voz continua a poder ajustar o volume no Discord.'},
  ],
+ oficial:[
+  {key:'paginas',label:'Páginas e canais oficiais',type:'official_pages',description:'Personaliza cada página oficial. Campos vazios preservam os textos originais da Shayon.'},
+ ],
 };
 const DISPLAY:Record<string,string>={mutua:'Divulgação mútua',so_divulgar:'Apenas divulgar',automatica:'Automática',provocadora:'Provocadora',fria:'Fria',fofa:'Fofa'};
 const COMMANDS:Partial<Record<SectionId,string>>={
@@ -88,7 +91,7 @@ const COMMANDS:Partial<Record<SectionId,string>>={
 const PUBLISH_NOTICE:Partial<Record<SectionId,string>>={
  cargos_interativos:'Os cargos são guardados aqui, mas os novos botões só aparecem depois de publicares/atualizares o painel pelo comando Discord.',
  tickets:'As definições ficam guardadas, mas publicar ou mudar o painel visível do Discord ainda exige o comando indicado abaixo.',
- oficial:'As páginas e mensagens oficiais precisam de ser publicadas/sincronizadas pelo bot no Discord. Não é possível publicá-las a partir deste formulário.',
+ oficial:'Guarda a configuração e depois escolhe Publicar/Atualizar para enviar as alterações diretamente ao Discord. A Shayon conserva as mensagens existentes sem duplicá-las.',
 };
 function readableError(value:unknown):string{
  if(value && typeof value==='object' && 'detail' in value){
@@ -124,6 +127,42 @@ function RoleItems({items,roles,change}:{items:unknown;roles:Option[];change:(v:
  <button type="button" className="button button-outline button-small" onClick={add} disabled={values.length>=25 || roles.every(role=>values.some(item=>item.role_id===role.id))}>+ Adicionar cargo existente</button>
  </div>;
 }
+type OfficialPage={pagina:string;canal_id:string;titulo:string;descricao:string};
+const OFFICIAL_NAMES:Record<string,string>={
+ regras:'Regras da comunidade',
+ shion:'Apresentação da Shayon',
+ comandos:'Guia de comandos',
+ estado:'Estado do projeto',
+};
+function OfficialPageEditor({pages,channels,change}:{
+ pages:unknown;channels:Option[];change:(v:unknown)=>void
+}){
+ const list=Array.isArray(pages)?pages as OfficialPage[]:[];
+ const update=(index:number,key:keyof OfficialPage,value:string)=>{
+  change(list.map((page,i)=>i===index?{...page,[key]:value}:page));
+ };
+ const textChannels=channels.filter(c=>c.type===0);
+ return <div className="official-pages">
+ {list.map((p,i)=><section className="official-page" key={p.pagina}>
+  <div className="eyebrow">{String(i+1).padStart(2,'0')} · PÁGINA OFICIAL</div>
+  <h3>{OFFICIAL_NAMES[p.pagina]||p.pagina}</h3>
+  <div className="config-field"><label htmlFor={'official-channel-'+p.pagina}>Canal de publicação</label>
+   <select id={'official-channel-'+p.pagina} value={p.canal_id||''} onChange={e=>update(i,'canal_id',e.target.value)}>
+    <option value="">Canal original da Shayon</option>
+    {textChannels.map(channel=><option value={channel.id} key={channel.id}>#{channel.name}</option>)}
+   </select>
+  </div>
+  <div className="config-field"><label htmlFor={'official-title-'+p.pagina}>Título personalizado</label>
+   <input id={'official-title-'+p.pagina} maxLength={150} value={p.titulo||''} placeholder="Manter o título original" onChange={e=>update(i,'titulo',e.target.value)}/>
+  </div>
+  <div className="config-field"><label htmlFor={'official-description-'+p.pagina}>Conteúdo personalizado</label>
+   <textarea id={'official-description-'+p.pagina} maxLength={3000} rows={5} value={p.descricao||''} placeholder="Deixa vazio para manter o conteúdo Dark Rose original" onChange={e=>update(i,'descricao',e.target.value)}/>
+   <small className="field-help">Podes usar Markdown do Discord. O banner oficial e os botões existentes continuam no painel.</small>
+  </div>
+ </section>)}
+ </div>;
+}
+
 function FieldEditor({field,value,onChange,options}:{field:Field;value:unknown;onChange:(v:unknown)=>void;options:Editor['options']}){
  const inputId='field-'+field.key;
  const channels=options.channels.filter(ch=>field.channelType===4?ch.type===4:ch.type===0||ch.type===5);
@@ -143,6 +182,7 @@ function FieldEditor({field,value,onChange,options}:{field:Field;value:unknown;o
    {options.roles.map(role=><label key={role.id}><input type="checkbox" checked={Array.isArray(value)&&value.map(String).includes(role.id)}
     onChange={e=>onChange(e.target.checked?[...(Array.isArray(value)?value:[]),role.id]:(Array.isArray(value)?value:[]).filter(item=>String(item)!==role.id))}/>{role.name}</label>)}</div>}
   {field.type==='role_items'&&<RoleItems items={value} roles={options.roles} change={onChange}/>}
+  {field.type==='official_pages'&&<OfficialPageEditor pages={value} channels={options.channels} change={onChange}/>}
  </div>;
 }
 export default function Dashboard(){
@@ -158,9 +198,13 @@ export default function Dashboard(){
  const [message,setMessage]=useState('');
  const [owner,setOwner]=useState<Owner|null>(null);
  const [ownerBusy,setOwnerBusy]=useState(false);
+ const [publishing,setPublishing]=useState(false);
+ const [confirmPublish,setConfirmPublish]=useState(false);
+ const [publishFeedback,setPublishFeedback]=useState('');
 
  const loadGuild=useCallback(async(id:string)=>{
   setSelectedId(id);setSection(null);setEditor(null);setError('');setMessage('');
+  setConfirmPublish(false);setPublishFeedback('');
   if(!id)return;
   try{const data=await jsonFetch<Editor>('/api/dashboard/'+id+'/editor');setEditor(data);}
   catch(e){setError(e instanceof Error?e.message:'Não foi possível consultar o servidor.');}
@@ -182,12 +226,13 @@ export default function Dashboard(){
  const activeGuild=useMemo(()=>guilds.find(g=>g.id===selectedId),[guilds,selectedId]);
  const activeSection=useMemo(()=>editor?.sections.find(s=>s.id===section),[editor,section]);
  const selectSection=(name:SectionId)=>{
-  setSection(name);setMessage('');setError('');
+  setSection(name);setMessage('');setError('');setConfirmPublish(false);setPublishFeedback('');
   setDraft({...editor?.settings[name]});
  };
  const update=(key:string,value:unknown)=>setDraft(prev=>({...prev,[key]:value}));
  const save=async()=>{
-  if(!selectedId||!section||section==='oficial')return;
+  if(!selectedId||!section)return;
+  if(section==='oficial' && (!owner?.can_manage || owner.official_guild_id!==selectedId))return;
   setSaving(true);setMessage('');setError('');
   try{
    const body=Object.fromEntries(FIELDS[section].map(field=>[field.key,draft[field.key]]));
@@ -198,6 +243,36 @@ export default function Dashboard(){
    setDraft(result.config);setMessage(result.note||'Configuração guardada.');
   }catch(e){setError(e instanceof Error?e.message:'Não foi possível guardar.');}
   finally{setSaving(false);}
+ };
+ const publishOfficial=async()=>{
+  if(!selectedId || !owner?.can_manage || owner.official_guild_id!==selectedId)return;
+  if(!confirmPublish)return;
+  setPublishing(true);setError('');setMessage('');setPublishFeedback('A Shayon está a verificar os quatro painéis oficiais...');
+  try{
+   const request=await jsonFetch<{job_id:number}>('/api/dashboard/'+selectedId+'/editor/oficial/publish',{
+    method:'POST',headers:{'Content-Type':'application/json'},body:'{}',
+   });
+   let finalStatus='';
+   for(let attempt=0;attempt<16;attempt++){
+    await new Promise(resolve=>setTimeout(resolve,1600));
+    const result=await jsonFetch<{status:string;detail:string}>(
+     '/api/dashboard/'+selectedId+'/editor/jobs/'+request.job_id
+    );
+    if(result.status==='done'||result.status==='failed'){
+     finalStatus=result.status;
+     setPublishFeedback(result.detail||'Sem detalhes da publicação.');
+     break;
+    }
+   }
+   if(!finalStatus)setPublishFeedback('A publicação continua em processamento. Consulta o estado pelo bot se necessário.');
+   if(finalStatus==='failed')setError('A Shayon encontrou um problema ao publicar. Consulta os detalhes abaixo.');
+   if(finalStatus==='done')setMessage('Painéis oficiais publicados/atualizados pela Shayon. ♡');
+  }catch(e){
+   setError(e instanceof Error?e.message:'Não foi possível publicar os painéis.');
+   setPublishFeedback('');
+  }finally{
+   setPublishing(false);setConfirmPublish(false);
+  }
  };
  const logout=async()=>{
   await jsonFetch('/api/auth/logout',{method:'POST'}).catch(()=>null);
@@ -265,19 +340,34 @@ export default function Dashboard(){
    </>}
    {selectedId&&editor&&activeSection&&<section className="content-card config-editor">
     <div className="eyebrow">CONFIGURAÇÃO POR SERVIDOR</div><h2>{activeSection.title}</h2><p>{activeSection.description}</p>
-    {section==='oficial'?
-      <><div className="note">{editor.settings.oficial?.vinculado
-       ?'Este é o servidor oficial vinculado à Shayon. O bot publica regras, apresentações e painéis por comandos com verificação de permissões.'
-       :'Este não é o servidor oficial. A gestão global e os painéis oficiais não estão disponíveis aqui.'}</div>
-       <p>As páginas oficiais são publicadas através do comando abaixo. Não apresentamos um botão web que não consiga publicá-las.</p></>
-    :<div className="editor-grid">{(FIELDS[section!]||[]).map(f=><FieldEditor key={f.key} field={f} value={draft[f.key]} onChange={v=>update(f.key,v)} options={editor.options}/>)}</div>}
+    {section==='oficial'&&(!owner?.can_manage||owner.official_guild_id!==selectedId)?
+      <div className="note"><LockKeyhole size={15}/> Apenas a proprietária da Shayon pode alterar ou publicar as páginas oficiais. Os outros servidores mantêm controlo apenas sobre os seus próprios módulos.</div>
+     :<div className="editor-grid">{(FIELDS[section!]||[]).map(f=><FieldEditor key={f.key} field={f} value={draft[f.key]} onChange={v=>update(f.key,v)} options={editor.options}/>)}</div>}
     {section&&PUBLISH_NOTICE[section]&&<div className="note">{PUBLISH_NOTICE[section]}</div>}
     {section==='analytics'&&<div className="note">As estatísticas são opcionais e são recolhidas apenas depois de ativas. Pode demorar até 15 segundos para a alteração ser refletida no bot.</div>}
     {section==='personalidade'&&<div className="note">A IA generativa gratuita do Groq utiliza a chave configurada no alojamento. O site não mostra nem permite recolher chaves privadas.</div>}
-    {section!=='oficial'&&<div className="form-actions">
+    {(section!=='oficial'||(owner?.can_manage&&owner.official_guild_id===selectedId))&&<div className="form-actions">
       <button className="button" type="button" disabled={saving} onClick={()=>void save()}><Save size={16}/>{saving?'A guardar...':'Guardar alterações'}</button>
       <button className="button button-outline" type="button" onClick={()=>selectSection(section!)}><RefreshCw size={15}/> Descartar</button>
     </div>}
+    {section==='oficial'&&owner?.can_manage&&owner.official_guild_id===selectedId&&<>
+     <div className="official-actions">
+      <h3>Publicar / atualizar os painéis oficiais</h3>
+      <p>As quatro páginas são enviadas para os canais escolhidos. Se uma mensagem já existir, a Shayon atualiza-a no lugar, preservando os banners e botões originais.</p>
+      {!confirmPublish?<button className="button button-outline" type="button" disabled={publishing} onClick={()=>setConfirmPublish(true)}>
+       <ArrowUpRight size={16}/> Preparar publicação
+      </button>:<div className="official-confirm">
+       <p>Confirmas que queres publicar ou atualizar as quatro páginas oficiais no Discord?</p>
+       <div className="form-actions">
+        <button className="button" type="button" disabled={publishing} onClick={()=>void publishOfficial()}>
+         {publishing?'A publicar...':'Confirmar publicação'}
+        </button>
+        <button className="button button-outline" type="button" disabled={publishing} onClick={()=>setConfirmPublish(false)}>Cancelar</button>
+       </div>
+      </div>}
+      {publishFeedback&&<div className="note" role="status"><pre className="official-results">{publishFeedback}</pre></div>}
+     </div>
+    </>}
     {section&&COMMANDS[section]&&<div className="discord-command"><span>NO DISCORD</span><code>{COMMANDS[section]}</code><button type="button" className="icon-action" onClick={()=>void navigator.clipboard?.writeText(COMMANDS[section]!)} aria-label="Copiar comando"><Command size={15}/></button></div>}
    </section>}
    <div className="dashboard-footnote"><ShieldCheck size={14}/> Configurações reais, sem números fictícios. Algumas operações que publicam mensagens no Discord ainda exigem os comandos próprios do bot. <Link href="/adicionar">Como instalar <ArrowUpRight size={12}/></Link></div>
