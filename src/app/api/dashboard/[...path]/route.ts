@@ -8,16 +8,18 @@ const allowed=[
  /^[0-9]{16,21}\/full$/,
  /^[0-9]{16,21}\/editor$/,
  /^[0-9]{16,21}\/editor\/(divulgacao|moderacao|rececao|cargos_automaticos|cargos_interativos|tickets|personalidade|analytics|oficial)$/,
+ /^[0-9]{16,21}\/editor\/oficial\/publish$/,
+ /^[0-9]{16,21}\/editor\/jobs\/[0-9]{1,10}$/,
  /^owner\/status$/,
  /^owner\/global$/,
 ];
 function validate(path:string){
  return path.length<=120 && allowed.some(pattern=>pattern.test(path));
 }
-async function proxy(request:NextRequest,parts:string[],method:'GET'|'PUT'){
+async function proxy(request:NextRequest,parts:string[],method:'GET'|'PUT'|'POST'){
  const path=parts.join('/');
  if(!validate(path))return NextResponse.json({error:'Rota não autorizada'},{status:404});
- if(method==='PUT' && (!sameOrigin(request) || !request.headers.get('content-type')?.startsWith('application/json')))
+ if(method!=='GET' && (!sameOrigin(request) || !request.headers.get('content-type')?.startsWith('application/json')))
   return NextResponse.json({error:'Pedido inválido ou origem diferente'},{status:403});
  const session=await getSession(request);
  if(!session){
@@ -25,7 +27,7 @@ async function proxy(request:NextRequest,parts:string[],method:'GET'|'PUT'){
   clearSession(response);return response;
  }
  let body: string|undefined;
- if(method==='PUT'){
+ if(method!=='GET'){
   body=await request.text();
   if(body.length>15000)return NextResponse.json({error:'Configuração demasiado grande'},{status:413});
   try{const obj=JSON.parse(body);if(!obj || typeof obj!=='object' || Array.isArray(obj))throw new Error();}
@@ -54,4 +56,7 @@ export async function GET(request:NextRequest,context:{params:Promise<{path:stri
 }
 export async function PUT(request:NextRequest,context:{params:Promise<{path:string[]}>}){
  return proxy(request,(await context.params).path,'PUT');
+}
+export async function POST(request:NextRequest,context:{params:Promise<{path:string[]}>}){
+ return proxy(request,(await context.params).path,'POST');
 }
