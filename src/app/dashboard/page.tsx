@@ -18,6 +18,12 @@ type Editor={
 };
 type Session={authenticated:boolean;user?:{id:string;username:string;global_name?:string|null}};
 type Owner={official_guild_id:string|null;paused:boolean;can_manage:boolean};
+type Area='servidores'|'geral'|'comunidade'|'gestao'|'extras'|'dona';
+const GROUPS=[
+ {id:'comunidade' as const,title:'Comunidade',description:'Receção, tickets e divulgação.',modules:['rececao','tickets','divulgacao'] as SectionId[]},
+ {id:'gestao' as const,title:'Gestão',description:'Moderação e cargos.',modules:['moderacao','cargos_automaticos','cargos_interativos'] as SectionId[]},
+ {id:'extras' as const,title:'Extras',description:'Personalidade, música e estatísticas.',modules:['personalidade','musica','analytics'] as SectionId[]},
+];
 const FIELDS:Record<SectionId,Field[]>={
  divulgacao:[
   {key:'ativo',label:'Participar na rede de divulgação',type:'bool'},
@@ -189,6 +195,7 @@ export default function Dashboard(){
  const [session,setSession]=useState<Session|null>(null);
  const [guilds,setGuilds]=useState<Guild[]>([]);
  const [selectedId,setSelectedId]=useState('');
+ const [area,setArea]=useState<Area>('servidores');
  const [editor,setEditor]=useState<Editor|null>(null);
  const [section,setSection]=useState<SectionId|null>(null);
  const [draft,setDraft]=useState<Record<string,unknown>>({});
@@ -203,7 +210,7 @@ export default function Dashboard(){
  const [publishFeedback,setPublishFeedback]=useState('');
 
  const loadGuild=useCallback(async(id:string)=>{
-  setSelectedId(id);setSection(null);setEditor(null);setError('');setMessage('');
+  setSelectedId(id);setSection(null);setEditor(null);setArea('geral');setError('');setMessage('');
   setConfirmPublish(false);setPublishFeedback('');
   if(!id)return;
   try{const data=await jsonFetch<Editor>('/api/dashboard/'+id+'/editor');setEditor(data);}
@@ -233,6 +240,18 @@ export default function Dashboard(){
  const selectSection=(name:SectionId)=>{
   setSection(name);setMessage('');setError('');setConfirmPublish(false);setPublishFeedback('');
   setDraft({...editor?.settings[name]});
+ };
+ const goServers=()=>{setSelectedId('');setEditor(null);setSection(null);setArea('servidores');setError('');setMessage('');};
+ const goArea=(next:Area)=>{setArea(next);setSection(null);setError('');setMessage('');};
+ const goOwner=()=>{setSelectedId('');setEditor(null);setSection(null);setArea('dona');setError('');setMessage('');};
+ const openOfficial=async()=>{
+  const id=owner?.official_guild_id;
+  if(!id||!owner?.can_manage)return;
+  setArea('dona');setSelectedId(id);setEditor(null);setSection(null);setError('');
+  try{
+   const item=await jsonFetch<Editor>('/api/dashboard/'+id+'/editor');
+   setEditor(item);setSection('oficial');setDraft({...item.settings.oficial});
+  }catch(e){setError(e instanceof Error?e.message:'Não foi possível abrir o servidor oficial.');}
  };
  const update=(key:string,value:unknown)=>setDraft(prev=>({...prev,[key]:value}));
  const save=async()=>{
@@ -294,88 +313,115 @@ export default function Dashboard(){
   }catch(e){setError(e instanceof Error?e.message:'Falha ao alterar o motor global.');}
   finally{setOwnerBusy(false);}
  };
- if(loading)return <main className="wrap"><div className="subhero"><div className="eyebrow">SHAYON CONTROL CENTER</div><h1>A consultar os teus <em>servidores...</em></h1></div></main>;
- if(!session?.authenticated)return <main className="wrap"><div className="subhero"><div className="eyebrow">SHAYON CONTROL CENTER</div><h1>O poder nas <em>tuas mãos.</em></h1><p>Entra com Discord para ver apenas os servidores que podes administrar.</p><a className="button" href="/api/auth/login"><LockKeyhole size={17}/> Entrar com Discord</a><p style={{marginTop:20}}><Link className="text-link" href="/adicionar">Ainda não tens a Shayon? Aprende a adicioná-la →</Link></p>{error&&<div className="note">{error}</div>}</div></main>;
- return <main className="dashboard-shell dashboard-live">
-  <aside className="dashboard-sidebar">
-   <p className="sidebar-title">SHAYON CONTROL CENTER</p>
-   <div className="profile-chip"><Users size={16}/><span>{session.user?.global_name||session.user?.username||'Discord'}</span></div>
-   <p className="sidebar-title" style={{marginTop:26}}>OS TEUS SERVIDORES</p>
-   {guilds.map(g=><button key={g.id} type="button" className={'side-link '+(selectedId===g.id?'active':'')} onClick={()=>void loadGuild(g.id)}>
-    <span>{g.name}</span><span>{g.installed?'♡':'+'}</span>
-   </button>)}
-   {guilds.length===0&&<div className="muted" style={{padding:12,fontSize:12}}>Ainda não tens servidores disponíveis para gerir.</div>}
-   <a className="side-link" href={SHAYON_INVITE} target="_blank" rel="noopener noreferrer">+ Adicionar a outro servidor <ExternalLink size={14}/></a>
-   {selectedId&&editor&&<>
-    <p className="sidebar-title" style={{marginTop:26}}>CONFIGURAÇÕES</p>
-    <button type="button" className={'side-link '+(section===null?'active':'')} onClick={()=>{setSection(null);setError('');}}>Visão geral</button>
-    {editor.sections.map(mod=><button type="button" key={mod.id} className={'side-link '+(section===mod.id?'active':'')} onClick={()=>selectSection(mod.id)}>{mod.title}<ChevronRight size={14}/></button>)}
-   </>}
-   {owner&&<button className={'side-link '+(section===null&&selectedId===''?'active':'')} onClick={()=>{setSelectedId('');setSection(null);setEditor(null);setError('');setMessage('');}}>♡ Gestão global</button>}
-   <button className="side-link logout-button" onClick={()=>void logout()}><LogOut size={15}/> Terminar sessão</button>
-  </aside>
-  <div className="dashboard-main">
-   <div className="dashboard-top"><div><div className="eyebrow">SHAYON · PAINEL AUTENTICADO</div>
-    <h1>{activeSection?.title||activeGuild?.name||(owner?'Gestão global da Shayon':'Escolhe um servidor')}</h1>
-    <p>{activeSection?.description||'Altera as configurações diretamente na Shayon, com permissões verificadas pelo Discord.'}</p></div>
-    <button type="button" className="button button-outline button-small" onClick={()=>void reload()}><RefreshCw size={15}/> Atualizar lista</button>
-   </div>
-   {error&&<div className="note" role="alert">{error}<button className="icon-action" onClick={()=>setError('')} aria-label="Fechar aviso"><X size={15}/></button></div>}
-   {message&&<div className="notice-success" role="status"><Check size={16}/>{message}</div>}
-   {!selectedId&&<div className="content-card"><div className="eyebrow">COMEÇA AQUI</div><h2>Escolhe um servidor no menu.</h2>
-    <p>Os servidores com Shayon instalada estão prontos para configuração. Se ainda não tiverem o bot, utiliza o convite oficial.</p>
-    <div className="guild-grid">{guilds.map(g=><button type="button" className="guild-choice" key={g.id} onClick={()=>g.installed?void loadGuild(g.id):window.open(inviteTo(g.id),'_blank','noopener,noreferrer')}>
-     <Server size={20}/><strong>{g.name}</strong><small>{g.installed?'Instalada · abrir gestão':'Sem Shayon · adicionar'}</small><ArrowRight size={16}/></button>)}</div>
-    {owner&&<div className="owner-controls"><div className="eyebrow">APENAS PROPRIETÁRIA</div><h2>Motor global de divulgação</h2>
-      <p>Esta opção controla a rede completa da Shayon, e não apenas um servidor. Afeta todas as comunidades participantes.</p>
-      <div className="owner-state">Estado: <strong>{owner.paused?'Pausado':'Ativo'}</strong></div>
-      <button type="button" className="button button-outline button-small" disabled={ownerBusy} onClick={()=>void setGlobalPause(!owner.paused)}>{owner.paused?'Reativar rede global':'Pausar rede global'}</button>
-      <p style={{fontSize:12,marginTop:16}}>Servidor oficial: {guilds.find(g=>g.id===owner.official_guild_id)?.name||'Identificado pela Shayon'}. A edição dos canais oficiais só é feita no servidor principal.</p>
-    </div>}
+ const activeGroup=GROUPS.find(g=>g.id===area);
+ const selectedGroupCount=GROUPS.reduce((sum,g)=>sum+g.modules.length,0);
+ const heading=activeSection?.title
+  ||(area==='servidores'?'Os teus servidores':area==='dona'?'A minha Shayon':area==='geral'?(activeGuild?.name||'Servidor'):activeGroup?.title||'Painel');
+ if(loading)return <main className="wrap dashboard-wait"><span className="eyebrow">SHAYON</span><h1>A carregar o <em>painel...</em></h1></main>;
+ if(!session?.authenticated)return <main className="auth-screen"><section className="auth-panel">
+  <div className="eyebrow">SHAYON ♡</div><h1>Gerir <em>servidores.</em></h1>
+  <p>Entra com Discord para configurar a Shayon.</p>
+  {error&&<div className="auth-error" role="alert">{error}</div>}
+  <Link className="button auth-button" href="/entrar"><LockKeyhole size={17}/> Entrar com Discord <ArrowRight size={17}/></Link>
+  <Link href="/adicionar" className="auth-help">Ainda não tens a Shayon? Adicionar ao servidor</Link>
+ </section></main>;
+ return <main className="dashboard-shell dashboard-live dashboard-simple">
+  <aside className="dashboard-sidebar simple-sidebar">
+   <div className="sidebar-heading">PAINEL SHAYON</div>
+   <button type="button" onClick={goServers} className={'side-link '+(area==='servidores'?'active':'')}><Server size={17}/> Servidores</button>
+   {selectedId&&editor&&area!=='dona'&&<div className="sidebar-context">
+    <div className="sidebar-current"><small>SERVIDOR</small><strong>{activeGuild?.name||'Servidor selecionado'}</strong></div>
+    <button type="button" className={'side-link '+(area==='geral'?'active':'')} onClick={()=>goArea('geral')}>Visão geral</button>
+    {GROUPS.map(group=><button key={group.id} type="button" className={'side-link '+(area===group.id?'active':'')} onClick={()=>goArea(group.id)}>
+     {group.title}<ChevronRight size={15}/>
+    </button>)}
    </div>}
-   {selectedId&&!editor&&<div className="content-card"><p>A consultar configurações... <RefreshCw size={16}/></p></div>}
-   {selectedId&&editor&&!activeSection&&<>
-    <div className="content-card"><div className="eyebrow">{owner?.official_guild_id===selectedId?'SERVIDOR OFICIAL':'SERVIDOR COM SHAYON'}</div>
-     <h2>Escolhe o que queres configurar. ♡</h2>
-     <p>As alterações são guardadas no bot. Só aparecem servidores que podes gerir; cargos e canais são verificados de novo antes de cada gravação.</p>
-     <div className="module-selection">{editor.sections.map(s=><button type="button" key={s.id} className="module-choice" onClick={()=>selectSection(s.id)}>
-      <Settings2 size={19}/><strong>{s.title}</strong><small>{s.description}</small><ChevronRight size={17}/></button>)}</div>
-    </div>
-    <div className="note"><ShieldCheck size={17}/> Para usar a Shayon noutro servidor, escolhe-o na barra lateral. O servidor oficial tem a sua própria gestão e os demais servidores nunca recebem acesso global.</div>
+   {owner?.can_manage&&<div className="sidebar-owner"><div className="sidebar-heading">ÁREA PRIVADA</div>
+    <button type="button" className={'side-link '+(area==='dona'?'active':'')} onClick={goOwner}>
+     <LockKeyhole size={15}/> A minha Shayon
+    </button></div>}
+   <div className="sidebar-account"><span>{session.user?.global_name||session.user?.username||'Discord'}</span>
+    <button type="button" onClick={()=>void logout()}><LogOut size={15}/> Sair</button>
+   </div>
+  </aside>
+  <div className="dashboard-main simple-main">
+   <div className="dashboard-top"><div>
+    <div className="eyebrow">SHAYON CONTROL CENTER</div><h1>{heading}</h1>
+    {activeSection&&<button type="button" className="dashboard-back" onClick={()=>{setSection(null);setError('');setMessage('');}}>
+     ← Voltar a {area==='dona'?'A minha Shayon':activeGroup?.title||'Visão geral'}</button>}
+   </div>
+   {area==='servidores'&&<button type="button" className="icon-action" onClick={()=>void reload()} aria-label="Atualizar servidores"><RefreshCw size={18}/></button>}
+   </div>
+   {error&&<div className="note simple-alert" role="alert">{error}<button type="button" className="icon-action" onClick={()=>setError('')} aria-label="Fechar"><X size={16}/></button></div>}
+   {message&&<div className="notice-success" role="status"><Check size={16}/>{message}</div>}
+   {area==='servidores'&&<>
+    <p className="simple-subtitle">Escolhe onde queres gerir a Shayon.</p>
+    <div className="simple-guilds">{guilds.map(g=><div className="simple-guild" key={g.id}>
+     <span className="guild-initial">{g.name.charAt(0).toUpperCase()}</span><div className="simple-guild-info"><strong>{g.name}</strong><small>{g.installed?'Shayon instalada':'Shayon ainda não instalada'}</small></div>
+     {g.installed?<button type="button" className="button button-small" onClick={()=>void loadGuild(g.id)}>Gerir <ArrowRight size={15}/></button>
+     :<a className="button button-outline button-small" href={inviteTo(g.id)} target="_blank" rel="noopener noreferrer">Adicionar <ArrowUpRight size={15}/></a>}
+    </div>)}</div>
+    {guilds.length===0&&<div className="simple-empty">Não encontramos servidores que possas gerir. Confirma que tens a permissão <b>Gerir Servidor</b> no Discord.</div>}
+    <Link className="simple-bottom-link" href="/adicionar">Como adicionar a Shayon <ArrowRight size={15}/></Link>
    </>}
-   {selectedId&&editor&&activeSection&&<section className="content-card config-editor">
-    <div className="eyebrow">CONFIGURAÇÃO POR SERVIDOR</div><h2>{activeSection.title}</h2><p>{activeSection.description}</p>
-    {section==='oficial'&&(!owner?.can_manage||owner.official_guild_id!==selectedId)?
-      <div className="note"><LockKeyhole size={15}/> Apenas a proprietária da Shayon pode alterar ou publicar as páginas oficiais. Os outros servidores mantêm controlo apenas sobre os seus próprios módulos.</div>
-     :<div className="editor-grid">{(FIELDS[section!]||[]).map(f=><FieldEditor key={f.key} field={f} value={draft[f.key]} onChange={v=>update(f.key,v)} options={editor.options}/>)}</div>}
-    {section&&PUBLISH_NOTICE[section]&&<div className="note">{PUBLISH_NOTICE[section]}</div>}
-    {section==='analytics'&&<div className="note">As estatísticas são opcionais e são recolhidas apenas depois de ativas. Pode demorar até 15 segundos para a alteração ser refletida no bot.</div>}
-    {section==='personalidade'&&<div className="note">A IA generativa gratuita do Groq utiliza a chave configurada no alojamento. O site não mostra nem permite recolher chaves privadas.</div>}
-    {(section!=='oficial'||(owner?.can_manage&&owner.official_guild_id===selectedId))&&<div className="form-actions">
-      <button className="button" type="button" disabled={saving} onClick={()=>void save()}><Save size={16}/>{saving?'A guardar...':'Guardar alterações'}</button>
-      <button className="button button-outline" type="button" onClick={()=>selectSection(section!)}><RefreshCw size={15}/> Descartar</button>
-    </div>}
-    {section==='oficial'&&owner?.can_manage&&owner.official_guild_id===selectedId&&<>
-     <div className="official-actions">
-      <h3>Publicar / atualizar os painéis oficiais</h3>
-      <p>As quatro páginas são enviadas para os canais escolhidos. Se uma mensagem já existir, a Shayon atualiza-a no lugar, preservando os banners e botões originais.</p>
-      {!confirmPublish?<button className="button button-outline" type="button" disabled={publishing} onClick={()=>setConfirmPublish(true)}>
-       <ArrowUpRight size={16}/> Preparar publicação
-      </button>:<div className="official-confirm">
-       <p>Confirmas que queres publicar ou atualizar as quatro páginas oficiais no Discord?</p>
-       <div className="form-actions">
-        <button className="button" type="button" disabled={publishing} onClick={()=>void publishOfficial()}>
-         {publishing?'A publicar...':'Confirmar publicação'}
-        </button>
-        <button className="button button-outline" type="button" disabled={publishing} onClick={()=>setConfirmPublish(false)}>Cancelar</button>
-       </div>
-      </div>}
-      {publishFeedback&&<div className="note" role="status"><pre className="official-results">{publishFeedback}</pre></div>}
+   {area==='dona'&&!activeSection&&<div className="simple-owner-screen">
+    <p className="simple-subtitle">Esta área é exclusiva da proprietária da Shayon.</p>
+    {owner?.can_manage&&<>
+     <div className="simple-module-row" role="group" aria-label="Servidor oficial">
+      <div><strong>Servidor oficial</strong><p>Regras, apresentação e páginas da Shayon.</p></div>
+      <button className="button button-outline button-small" type="button" disabled={!owner.official_guild_id} onClick={()=>void openOfficial()}>Configurar <ArrowRight size={15}/></button>
+     </div>
+     <div className="simple-module-row simple-global">
+      <div><strong>Rede global</strong><p>Estado da rede de divulgação de todos os servidores.</p><small>{owner.paused?'Pausada':'Ativa'}</small></div>
+      <button type="button" className="button button-outline button-small" disabled={ownerBusy} onClick={()=>void setGlobalPause(!owner.paused)}>
+       {owner.paused?'Reativar':'Pausar'}
+      </button>
      </div>
     </>}
-    {section&&COMMANDS[section]&&<div className="discord-command"><span>NO DISCORD</span><code>{COMMANDS[section]}</code><button type="button" className="icon-action" onClick={()=>void navigator.clipboard?.writeText(COMMANDS[section]!)} aria-label="Copiar comando"><Command size={15}/></button></div>}
+   </div>}
+   {selectedId&&!editor&&area!=='servidores'&&<p className="simple-subtitle">A carregar as configurações do servidor...</p>}
+   {selectedId&&editor&&area==='geral'&&!activeSection&&<>
+    <p className="simple-subtitle">O que queres configurar?</p>
+    <div className="simple-categories">{GROUPS.map(group=><button type="button" className="simple-category" key={group.id} onClick={()=>goArea(group.id)}>
+     <span className="category-count">0{GROUPS.indexOf(group)+1}</span>
+     <strong>{group.title}</strong><p>{group.description}</p><span className="category-footer">{group.modules.length} opções <ArrowRight size={16}/></span>
+    </button>)}</div>
+   </>}
+   {selectedId&&editor&&activeGroup&&!activeSection&&<>
+    <p className="simple-subtitle">{activeGroup.description}</p>
+    <div className="simple-module-list">{activeGroup.modules.map(name=>{
+     const mod=editor.sections.find(item=>item.id===name);
+     if(!mod)return null;
+     return <button type="button" className="simple-module-row" key={name} onClick={()=>selectSection(name)}>
+      <div><strong>{mod.title}</strong><p>{mod.description}</p></div><ChevronRight size={19}/>
+     </button>;
+    })}</div>
+   </>}
+   {selectedId&&editor&&activeSection&&<section className="simple-settings">
+    <div className="simple-settings-intro"><p>As alterações afetam apenas este servidor.</p></div>
+    {section==='oficial'&&(!owner?.can_manage||owner.official_guild_id!==selectedId)?
+     <div className="note">Esta área é exclusiva da proprietária.</div>
+     :<div className="editor-grid simple-editor-grid">{(FIELDS[section!]||[]).map(field=><FieldEditor key={field.key} field={field} value={draft[field.key]} onChange={value=>update(field.key,value)} options={editor.options}/>)}</div>}
+    {section&&PUBLISH_NOTICE[section]&&<p className="simple-field-note">{PUBLISH_NOTICE[section]}</p>}
+    {section==='personalidade'&&<p className="simple-field-note">O modo de IA gratuita só fica ativo quando tiver uma chave Groq configurada no alojamento.</p>}
+    {(section!=='oficial'||(owner?.can_manage&&owner.official_guild_id===selectedId))&&
+    <div className="form-actions simple-save-actions"><button className="button" type="button" disabled={saving} onClick={()=>void save()}>
+     <Save size={16}/>{saving?'A guardar...':'Guardar alterações'}
+    </button><button className="button button-outline" type="button" onClick={()=>selectSection(section!)}>Repor</button></div>}
+    {section==='oficial'&&owner?.can_manage&&owner.official_guild_id===selectedId&&<div className="official-actions">
+     <h3>Publicar no Discord</h3><p>Guarda primeiro as alterações. A Shayon atualiza as páginas oficiais existentes.</p>
+     {!confirmPublish?<button className="button button-outline" type="button" disabled={publishing||saving} onClick={()=>setConfirmPublish(true)}>
+      Preparar publicação <ArrowUpRight size={16}/></button>
+      :<div className="official-confirm"><p>Confirmas a publicação das quatro páginas oficiais?</p>
+       <div className="form-actions"><button className="button" type="button" disabled={publishing} onClick={()=>void publishOfficial()}>{publishing?'A publicar...':'Confirmar publicação'}</button>
+        <button className="button button-outline" type="button" disabled={publishing} onClick={()=>setConfirmPublish(false)}>Cancelar</button></div></div>}
+     {publishFeedback&&<div className="note" role="status"><pre className="official-results">{publishFeedback}</pre></div>}
+    </div>}
+    {section&&COMMANDS[section]&&<details className="simple-discord-help"><summary>Também podes usar no Discord</summary>
+     <div className="discord-command"><code>{COMMANDS[section]}</code><button type="button" className="icon-action" onClick={()=>void navigator.clipboard?.writeText(COMMANDS[section]!)} aria-label="Copiar comando"><Command size={16}/></button></div>
+    </details>}
    </section>}
-   <div className="dashboard-footnote"><ShieldCheck size={14}/> Configurações reais, sem números fictícios. Algumas operações que publicam mensagens no Discord ainda exigem os comandos próprios do bot. <Link href="/adicionar">Como instalar <ArrowUpRight size={12}/></Link></div>
+   <footer className="simple-dashboard-footer">Shayon ♡ · {selectedId?activeGuild?.name||'Servidor':''}</footer>
   </div>
  </main>;
 }
