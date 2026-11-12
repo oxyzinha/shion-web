@@ -1,6 +1,6 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {DISCORD_API,DISCORD_CLIENT_ID,STATE_COOKIE,
- cookieOptions,discordRedirectUri,equalStates,setSession,publicSiteOrigin} from '@/lib/server-auth';
+ cookieOptions,discordRedirectUri,equalStates,setSession,publicSiteOrigin,stateCookieName} from '@/lib/server-auth';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 
@@ -11,6 +11,8 @@ export async function GET(request:NextRequest){
   const url=new URL('/entrar',publicSiteOrigin(request));
   url.searchParams.set('erro',reason);
   const response=NextResponse.redirect(url);
+  const currentName=stateCookieName(params.get('state')||'');
+  if(currentName)response.cookies.set(currentName,'',{...cookieOptions(),maxAge:0});
   response.cookies.set(STATE_COOKIE,'',{...cookieOptions(),maxAge:0});
   response.headers.set('Cache-Control','no-store');
   return response;
@@ -18,10 +20,17 @@ export async function GET(request:NextRequest){
  const params=request.nextUrl.searchParams;
  if(params.has('error'))return fail('cancelado');
  if(params.has('iss') && params.get('iss')!=='https://discord.com')return fail('origem');
- const received=request.cookies.get(STATE_COOKIE)?.value||'';
  const state=params.get('state')||'';
+ const name=stateCookieName(state);
+ const received=(name?request.cookies.get(name)?.value:'')
+  ||request.cookies.get(STATE_COOKIE)?.value||'';
  const code=params.get('code')||'';
- if(!code || code.length>1024 || !equalStates(state,received))return fail('sessao');
+ if(!code || code.length>1024 || !equalStates(state,received)){
+  // Nunca registar o estado ou o código; só identificar a razão.
+  console.warn('[SHAYON OAUTH] Falha de estado:',
+    !received?'cookie-ausente':'diferente');
+  return fail(!received?'sessao-cookie':'sessao');
+ }
  try{
   const credential=Buffer.from(
     DISCORD_CLIENT_ID+':'+(process.env.DISCORD_CLIENT_SECRET||''),'utf8'
@@ -62,6 +71,8 @@ export async function GET(request:NextRequest){
    access_token:token.access_token,refresh_token:token.refresh_token,
    expires_at:Date.now()+token.expires_in*1000,
   });
+  const currentName=stateCookieName(params.get('state')||'');
+  if(currentName)response.cookies.set(currentName,'',{...cookieOptions(),maxAge:0});
   response.cookies.set(STATE_COOKIE,'',{...cookieOptions(),maxAge:0});
   response.headers.set('Cache-Control','no-store');
   return response;
