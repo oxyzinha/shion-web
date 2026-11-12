@@ -14,7 +14,7 @@ type Section={id:SectionId;title:string;description:string;editable:boolean};
 type Option={id:string;name:string;type?:number};
 type Editor={
  guild_id:string;settings:Record<string,Record<string,unknown>>;
- sections:Section[];options:{channels:Option[];roles:Option[]};
+ sections:Section[];options:{channels:Option[];roles:Option[];support_roles?:Option[]};
  limits:{role_panel_requires_publish:boolean;ticket_panel_requires_publish:boolean;analytics_delay_seconds:number}
 };
 type Session={authenticated:boolean;user?:{id:string;username:string;global_name?:string|null}};
@@ -185,8 +185,8 @@ function FieldEditor({field,value,onChange,options}:{field:Field;value:unknown;o
    <option value="">Não configurado</option>{channels.map(ch=><option key={ch.id} value={ch.id}>#{ch.name}</option>)}</select>}
   {field.type==='role'&&<select id={inputId} value={String(value??'')} onChange={e=>onChange(e.target.value)}>
    <option value="">Desativado / nenhum cargo</option>{options.roles.map(role=><option key={role.id} value={role.id}>{role.name}</option>)}</select>}
-  {field.type==='roles'&&<div className="role-checklist">{options.roles.length===0&&<span className="muted">Não existem cargos atribuíveis pela Shayon.</span>}
-   {options.roles.map(role=><label key={role.id}><input type="checkbox" checked={Array.isArray(value)&&value.map(String).includes(role.id)}
+  {field.type==='roles'&&<div className="role-checklist">{(options.support_roles||options.roles).length===0&&<span className="muted">Não existem cargos de suporte disponíveis.</span>}
+   {(options.support_roles||options.roles).map(role=><label key={role.id}><input type="checkbox" checked={Array.isArray(value)&&value.map(String).includes(role.id)}
     onChange={e=>onChange(e.target.checked?[...(Array.isArray(value)?value:[]),role.id]:(Array.isArray(value)?value:[]).filter(item=>String(item)!==role.id))}/>{role.name}</label>)}</div>}
   {field.type==='role_items'&&<RoleItems items={value} roles={options.roles} change={onChange}/>}
   {field.type==='official_pages'&&<OfficialPageEditor pages={value} channels={options.channels} change={onChange}/>}
