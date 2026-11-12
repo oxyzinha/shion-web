@@ -6,7 +6,6 @@ const links=[
  ['Início','/'],
  ['Funcionalidades','/funcionalidades'],
  ['Adicionar','/adicionar'],
- ['Painel','/dashboard'],
 ];
 export function Header(){
  const [open,setOpen]=useState(false);
@@ -17,7 +16,7 @@ export function Header(){
   <nav aria-label="Navegação principal" className={'nav '+(open?'nav-open':'')}>
    {links.map(([title,href])=><Link key={href} href={href} onClick={()=>setOpen(false)}>{title}</Link>)}
   </nav>
-  <Link className="button button-small header-cta" href="/dashboard">Gerir servidores</Link>
+  <Link className="button button-small header-cta" href="/dashboard">Entrar no painel</Link>
   <button className="menu-btn" aria-label={open?'Fechar menu':'Abrir menu'} aria-expanded={open} onClick={()=>setOpen(v=>!v)}>{open?<X/>:<Menu/>}</button>
  </div></header>;
 }
