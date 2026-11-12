@@ -83,10 +83,20 @@ export async function getSession(request:NextRequest):Promise<{session:Session;r
  const renewed=await refresh(existing);
  return renewed?{session:renewed,refreshed:true}:null;
 }
+export function publicSiteOrigin(request:NextRequest):string{
+ const configured=process.env.SHAYON_SITE_URL;
+ if(configured)return new URL(configured).origin;
+ if(process.env.NODE_ENV==='production')throw new Error('SHAYON_SITE_URL não configurado.');
+ return request.nextUrl.origin;
+}
 export function sameOrigin(request:NextRequest):boolean{
  const origin=request.headers.get('origin');
  if(!origin)return false;
- try{return new URL(origin).origin===request.nextUrl.origin;}catch{return false;}
+ try{
+  const expected=publicSiteOrigin(request);
+  const parsed=new URL(origin);
+  return parsed.origin===expected;
+ }catch{return false;}
 }
 export function equalStates(a:string,b:string):boolean{
  const aa=Buffer.from(a),bb=Buffer.from(b);
