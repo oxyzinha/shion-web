@@ -111,11 +111,14 @@ function readableError(value:unknown):string{
  }
  return 'Ocorreu um erro ao comunicar com a Shayon.';
 }
+class ApiError extends Error{
+ constructor(message:string,readonly status:number){super(message);this.name='ApiError';}
+}
 async function jsonFetch<T>(path:string,options?:RequestInit):Promise<T>{
  const r=await fetch(path,{cache:'no-store',credentials:'same-origin',...options});
  let body:unknown;
  try{body=await r.json();}catch{body={error:'Resposta inválida do serviço.'};}
- if(!r.ok)throw new Error(readableError(body));
+ if(!r.ok)throw new ApiError(readableError(body),r.status);
  return body as T;
 }
 function RoleItems({items,roles,change}:{items:unknown;roles:Option[];change:(v:unknown)=>void}){
@@ -219,7 +222,7 @@ export default function Dashboard(){
  },[]);
 
  const reload=useCallback(async()=>{
-  setLoading(true);setError('');
+  setLoading(true);setError('');setSession(null);
   try{
    const auth=await jsonFetch<Session>('/api/auth/session');
    setSession(auth);
@@ -245,9 +248,20 @@ export default function Dashboard(){
     }
    }else{
     setGuilds([]);
-    setError('Não foi possível carregar os servidores. Experimenta atualizar a lista.');
+    if(guildResult.reason instanceof ApiError && guildResult.reason.status===401){
+     setSession({authenticated:false});
+     setOwner(null);
+     setError('A tua sessão Discord expirou. Entra novamente para ver os servidores.');
+    }else{
+     setError(guildResult.reason instanceof Error
+      ?guildResult.reason.message
+      :'Não foi possível carregar os servidores. Experimenta atualizar a lista.');
+    }
    }
-  }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar os servidores.');}
+  }catch(e){
+   setSession({authenticated:false});setGuilds([]);setOwner(null);
+   setError(e instanceof Error?e.message:'Erro ao carregar os servidores.');
+  }
   finally{setLoading(false);}
  },[loadGuild]);
  useEffect(()=>{void reload();},[reload]);
@@ -337,7 +351,12 @@ export default function Dashboard(){
   <div className="eyebrow">SHAYON ♡</div><h1>Gerir <em>servidores.</em></h1>
   <p>Entra com Discord para configurar a Shayon.</p>
   {error&&<div className="auth-error" role="alert">{error}</div>}
-  <Link className="button auth-button" href="/entrar"><LockKeyhole size={17}/> Entrar com Discord <ArrowRight size={17}/></Link>
+  <Link className="button auth-button" href="/api/auth/login">
+   <LockKeyhole size={17}/> Continuar com Discord <ArrowRight size={17}/>
+  </Link>
+  {error&&<button className="auth-retry" type="button" onClick={()=>void reload()}>
+   <RefreshCw size={14}/> Tentar carregar novamente
+  </button>}
   <Link href="/adicionar" className="auth-help">Ainda não tens a Shayon? Adicionar ao servidor</Link>
  </section></main>;
  return <main className="dashboard-shell dashboard-live dashboard-simple">
