@@ -1,5 +1,36 @@
 import Link from 'next/link';
-import {ArrowRight,ArrowUpRight,ChevronDown,Command,Layers3,ShieldCheck} from 'lucide-react';
-import {ModuleGrid} from '@/components/module-grid';
+import {ArrowRight,ArrowUpRight,Headphones,HeartHandshake,ShieldCheck} from 'lucide-react';
 import {SHAYON_INVITE} from '@/lib/links';
-export default function Home(){const invite=process.env.NEXT_PUBLIC_DISCORD_INVITE_URL||SHAYON_INVITE;return <main><section className="hero wrap"><div className="hero-grid"><div className="hero-content"><span className="pill"><span className="glow-dot"/> A NEW ERA FOR YOUR COMMUNITY</span><h1>Your community,<br/><em>beautifully</em><br/>connected<span className="period">.</span></h1><p>Divulgação, gestão e automação. Tudo o que a tua comunidade precisa, num só lugar.</p><div className="hero-actions">{invite?<a className="button" href={invite} target="_blank" rel="noopener noreferrer">Adicionar ao Discord <ArrowUpRight size={18}/></a>:<span className="button button-disabled" title="Convite oficial ainda não configurado">Adicionar ao Discord · Em breve</span>}<Link className="button button-outline" href="/funcionalidades">Explorar funcionalidades <ArrowRight size={18}/></Link></div><div className="hero-note"><span>✦</span> CONSTRUÍDA PARA COMUNIDADES QUE QUEREM MAIS</div></div><div className="hero-visual"><div className="hero-orbit orbit-a"/><div className="hero-orbit orbit-b"/><div className="art-card"><div className="art-top">SHAYON <span>♡</span><small>YOUR DIGITAL COMPANION</small></div><div className="art-image-wrap"><img src="/shion-icon.png" alt="Ilustração oficial da Shayon, cabelo rosa e estética dark rose" className="art-image" /></div><div className="art-bottom"><span>01 / THE BEGINNING</span><span>✦ DARK ROSE EDITION</span></div></div><span className="float-star star-a">✦</span><span className="float-star star-b">✧</span></div></div><a className="scroll-hint" href="#funcionalidades"><ChevronDown size={16}/> DESCOBRE A SHAYON</a></section><section className="section-feature" id="funcionalidades"><div className="wrap"><div className="section-heading"><div><div className="eyebrow">O TEU SERVIDOR. ELEVADO.</div><h2>One bot.<br/><em>Endless possibilities.</em></h2></div><p>Ferramentas pensadas para tornar cada comunidade mais organizada, acolhedora e ativa.</p></div><ModuleGrid limit={6}/><div className="section-cta"><Link href="/funcionalidades">Ver todas as funcionalidades <ArrowUpRight size={17}/></Link></div></div></section><section className="official-banner-section wrap"><div className="eyebrow center">A ALMA POR DETRÁS DO BOT</div><h2 className="center">Meet <em>Shayon ♡</em></h2><div className="official-banner-frame"><img src="/shion-banner.png" alt="Banner oficial SHAYON com a personagem de cabelo rosa" loading="lazy" /></div></section><section className="how-section wrap"><div className="eyebrow center">SIMPLES DESDE O PRIMEIRO PASSO</div><h2 className="center">O teu espaço, <em>à tua maneira.</em></h2><div className="steps"><div><span className="step-no">01</span><Command/><h3>Adiciona a Shayon</h3><p>Escolhe o teu servidor no convite oficial do Discord e autoriza a Shayon.</p></div><div><span className="step-no">02</span><Layers3/><h3>Escolhe os módulos</h3><p>Entra com Discord no site, escolhe um servidor teu e configura os módulos.</p></div><div><span className="step-no">03</span><ShieldCheck/><h3>Gere com liberdade</h3><p>Guarda alterações por servidor e confirma as permissões de cada canal e cargo.</p></div></div></section><section className="stats-teaser"><div className="wrap stats-inner"><div><div className="eyebrow">EM BREVE · DADOS EM TEMPO REAL</div><h2>Cada interação<br/><em>conta uma história.</em></h2><p>Estamos a preparar estatísticas verificadas de servidores, divulgação e tickets. Os números públicos só serão apresentados após integração real.</p><Link href="/dashboard" className="text-link">Abrir dashboard <ArrowUpRight size={17}/></Link></div><div className="stats-preview"><div>VISÃO GERAL DA REDE <span>✦</span></div>{['Servidores ativos','Anúncios distribuídos','Tickets resolvidos'].map(x=><div className="preview-row" key={x}><span>{x}</span><strong>—</strong></div>)}<small>À espera de ligação ao bot</small></div></div></section><section className="closing wrap"><span>✧</span><h2>Make your community<br/><em>unforgettable.</em></h2><p>Descobre tudo o que a Shayon pode trazer ao teu universo.</p><Link className="button" href="/funcionalidades">Conhecer a Shayon <ArrowUpRight size={18}/></Link></section></main>}
+export default function Home(){
+ return <main className="public-home">
+  <section className="wrap public-hero">
+   <div className="public-hero-copy">
+    <span className="eyebrow">SHAYON · DARK ROSE</span>
+    <h1>Uma presença.<br/><em>Todo um universo.</em></h1>
+    <p>Uma personagem com personalidade, música e ferramentas para cuidar da tua comunidade no Discord.</p>
+    <div className="public-actions">
+     <a href={SHAYON_INVITE} target="_blank" rel="noopener noreferrer" className="button">Adicionar ao Discord <ArrowUpRight size={17}/></a>
+     <Link href="/dashboard" className="button button-outline">Gerir servidor <ArrowRight size={17}/></Link>
+    </div>
+   </div>
+   <div className="public-portrait"><img src="/shion-icon.png" alt="Arte oficial da personagem Shayon" /></div>
+  </section>
+  <section className="wrap public-essentials">
+   <div className="eyebrow">O ESSENCIAL</div><h2>Menos complicação.<br/><em>Mais comunidade.</em></h2>
+   <div className="public-benefits">
+    <div><ShieldCheck size={21}/><h3>Gestão</h3><p>Moderação, cargos e tickets num só painel.</p></div>
+    <div><HeartHandshake size={21}/><h3>Comunidade</h3><p>Boas-vindas e divulgação à tua maneira.</p></div>
+    <div><Headphones size={21}/><h3>Extras</h3><p>Música, estatísticas e personalidade Dark Rose.</p></div>
+   </div>
+  </section>
+  <section className="wrap public-start">
+   <div><div className="eyebrow">COMEÇAR É SIMPLES</div><h2>Três passos.<br/><em>O teu servidor.</em></h2></div>
+   <div className="public-steps">
+    <p><strong>01</strong> Adiciona a Shayon pelo convite oficial.</p>
+    <p><strong>02</strong> Entra no painel com Discord.</p>
+    <p><strong>03</strong> Escolhe o servidor e configura o que precisares.</p>
+    <Link href="/adicionar" className="text-link">Ver o guia de instalação <ArrowRight size={16}/></Link>
+   </div>
+  </section>
+ </main>;
+}
