@@ -4,6 +4,7 @@ import {useCallback,useEffect,useMemo,useState} from 'react';
 import {ArrowRight,ArrowUpRight,Check,ChevronRight,Command,ExternalLink,LockKeyhole,
  LogOut,RefreshCw,Save,Server,Settings2,ShieldCheck,Users,X} from 'lucide-react';
 import {inviteTo,SHAYON_INVITE} from '@/lib/links';
+import {OwnerMonitor} from '@/components/owner-monitor';
 
 type Guild={id:string;name:string;installed:boolean;owner:boolean};
 type FieldKind='bool'|'int'|'text'|'channel'|'role'|'roles'|'choice'|'role_items'|'official_pages';
@@ -379,12 +380,9 @@ export default function Dashboard(){
     <Link className="simple-bottom-link" href="/adicionar">Como adicionar a Shayon <ArrowRight size={15}/></Link>
    </>}
    {area==='dona'&&!activeSection&&<div className="simple-owner-screen">
-    <p className="simple-subtitle">O espaço de administração da própria Shayon, separado dos servidores de outras comunidades.</p>
     {owner?.can_manage&&<>
-     <div className="owner-dashboard-intro"><div className="eyebrow">SHAYON · DARK ROSE</div>
-      <h2>Painel da Shayon ♡</h2>
-      <p>Gere o servidor oficial e a rede global sem misturar as configurações das outras comunidades.</p>
-     </div>
+     <OwnerMonitor/>
+     <div className="owner-management-heading"><h3>Administração</h3><p>Configurações da própria Shayon e do servidor oficial.</p></div>
      <div className="simple-module-row" role="group" aria-label="Servidor oficial">
       <div><strong>Servidor oficial</strong><p>Regras, apresentação e páginas da Shayon.</p></div>
       <button className="button button-outline button-small" type="button" disabled={!owner.official_guild_id} onClick={()=>void openOfficial()}>Configurar <ArrowRight size={15}/></button>
