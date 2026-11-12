@@ -256,3 +256,6 @@
 .monitor-skeleton{border:1px solid #453343;padding:32px 22px;border-radius:10px;color:#c9acbd;font-size:13px}
 @media(max-width:1000px){.monitor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:660px){.monitor-two-col{grid-template-columns:1fr}.monitor-heading{align-items:flex-start;flex-wrap:wrap}.monitor-grid{gap:10px}.monitor-stat{padding:15px}.monitor-section{padding:17px}.monitor-bars{gap:4px}}
+
+.auth-retry{display:inline-flex;align-items:center;gap:7px;justify-content:center;border:0;background:transparent;color:#edb1d1;font-size:12px;margin:10px auto 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.auth-retry:hover{color:#fff}
