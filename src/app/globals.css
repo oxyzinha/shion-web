@@ -205,3 +205,54 @@
 .owner-dashboard-intro h2{font-size:30px;margin:12px 0}
 .owner-dashboard-intro p{font-size:13px;color:#b9a6b6;line-height:1.7;max-width:550px;margin-bottom:0}
 @media(max-width:740px){.dashboard-simple .simple-sidebar{position:static;min-height:auto}.dashboard-simple .simple-main{min-height:calc(100vh - 150px);padding:26px 18px 35px}.owner-dashboard-intro{padding:23px 20px}}
+
+
+/* Shayon owner's private monitoring — compact telemetry, no faux stats */
+.owner-monitor{margin:0 0 38px;max-width:1080px}
+.monitor-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 22px}
+.monitor-heading h2{font-size:clamp(22px,2.8vw,31px);margin:9px 0 0}
+.monitor-heading h2 span{color:#e1a1be}
+.monitor-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.monitor-stat{display:flex;flex-direction:column;gap:8px;border:1px solid #4c3449;background:linear-gradient(155deg,#211620,#141017);border-radius:10px;padding:19px 17px;min-width:0}
+.monitor-stat-label{display:flex;align-items:center;gap:8px;color:#bca2b7;font-size:11px}
+.monitor-stat-label svg{color:#d8a0bd}
+.monitor-stat strong{display:block;font-size:clamp(22px,2.7vw,30px);font-variant-numeric:tabular-nums;letter-spacing:-.035em;color:#faf0f7}
+.monitor-stat strong.monitor-good{color:#a7d7b5}
+.monitor-stat strong.monitor-muted{color:#e5bbca}
+.monitor-stat small{display:block;font-size:10px;line-height:1.5;color:#9c8799}
+.monitor-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.monitor-section{background:#19131c;border:1px solid #453343;border-radius:10px;padding:23px;min-width:0}
+.monitor-section h3{font-size:16px;margin:0 0 18px}
+.monitor-rows{display:flex;flex-direction:column}
+.monitor-rows>div{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #362937;color:#c5b2c0;font-size:12px}
+.monitor-rows>div:last-child{border-bottom:0}
+.monitor-rows span{display:flex;gap:8px;align-items:center}
+.monitor-rows svg{color:#a987a0}
+.monitor-rows strong{font-size:15px;font-variant-numeric:tabular-nums;color:#f5e2ef}
+.monitor-module-chips{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 12px}
+.monitor-module-chips span{font-size:10px;color:#d0bdcb;background:#30202f;padding:8px 10px;border-radius:6px}
+.monitor-module-chips b{color:#f2c5dc}
+.monitor-explain{font-size:10px;line-height:1.65;color:#99899a}
+.monitor-trend{margin-top:14px}
+.monitor-title-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.monitor-title-row span{color:#bca9b9;font-size:11px}
+.monitor-bars{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;margin-top:22px}
+.monitor-bar-cell{display:flex;flex-direction:column;align-items:center;gap:6px;color:#ab99a9;min-width:0;font-size:10px}
+.monitor-bar-cell strong{font-size:10px;font-weight:600;color:#d5bbcb}
+.monitor-bar-track{height:92px;width:100%;max-width:50px;border-radius:5px;background:#302132;display:flex;align-items:flex-end;overflow:hidden}
+.monitor-bar-track>div{width:100%;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#e4a4c7,#9c5f84)}
+.monitor-bar-cell small{font-size:9px;color:#a996a8;white-space:nowrap}
+.monitor-details{margin-top:14px;border:1px solid #453343;border-radius:9px;padding:19px 22px;background:#161219}
+.monitor-details>summary{font-size:13px;color:#dcb4cb;cursor:pointer;font-weight:600}
+.monitor-details[open]>summary{margin-bottom:14px}
+.monitor-job-list{margin:15px 0;display:flex;flex-direction:column;gap:7px}
+.monitor-job-list>div{display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:11px;color:#c5aebf}
+.monitor-job-list>div b{color:#f3ccde}
+.monitor-job-list>div small{color:#a28fa1}
+.monitor-updated{font-size:10px;color:#958192;margin:13px 0 22px}
+.owner-management-heading{margin:30px 0 17px;padding-top:24px;border-top:1px solid #443044}
+.owner-management-heading h3{margin:0 0 5px;font-size:20px}
+.owner-management-heading p{margin:0;font-size:12px;color:#ad9bac}
+.monitor-skeleton{border:1px solid #453343;padding:32px 22px;border-radius:10px;color:#c9acbd;font-size:13px}
+@media(max-width:1000px){.monitor-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:660px){.monitor-two-col{grid-template-columns:1fr}.monitor-heading{align-items:flex-start;flex-wrap:wrap}.monitor-grid{gap:10px}.monitor-stat{padding:15px}.monitor-section{padding:17px}.monitor-bars{gap:4px}}
