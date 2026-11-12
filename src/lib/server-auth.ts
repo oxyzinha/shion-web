@@ -37,10 +37,10 @@ export function discordRedirectUri(request:NextRequest):string{
  if(configured){
   const origin=new URL(configured);
   if(process.env.NODE_ENV==='production' && origin.protocol!=='https:')throw new Error('SHAYON_SITE_URL requer HTTPS.');
-  return origin.origin+'/api/auth/callback';
+  return origin.origin+'/api/auth/callback/discord';
  }
  if(process.env.NODE_ENV==='production')throw new Error('Configura SHAYON_SITE_URL para ativar o login Discord.');
- return request.nextUrl.origin+'/api/auth/callback';
+ return request.nextUrl.origin+'/api/auth/callback/discord';
 }
 export function installUrl(guildId?:string){
  const url=new URL('https://discord.com/oauth2/authorize');
