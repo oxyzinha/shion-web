@@ -3,7 +3,12 @@ import type {NextRequest,NextResponse} from 'next/server';
 
 export const DISCORD_CLIENT_ID=process.env.DISCORD_CLIENT_ID || '1563985507996934284';
 export const COOKIE_NAME='shayon_session';
-export const STATE_COOKIE='shayon_oauth_state';
+export const STATE_COOKIE='shayon_oauth_state'; // Compatibilidade com autorizações iniciadas antes desta versão.
+const STATE_PREFIX='shayon_oauth_';
+export function stateCookieName(state:string):string|null{
+ if(!/^[A-Za-z0-9_-]{32,128}$/.test(state))return null;
+ return STATE_PREFIX+createHash('sha256').update(state).digest('hex').slice(0,24);
+}
 export const DISCORD_API='https://discord.com/api/v10';
 
 export type DiscordUser={id:string;username:string;global_name?:string|null;avatar?:string|null};
@@ -59,7 +64,7 @@ export function setSession(response:NextResponse,session:Session){
 export function clearSession(response:NextResponse){
  response.cookies.set(COOKIE_NAME,'',{...cookieOptions(),maxAge:0});
 }
-async function refresh(session:Session):Promise<Session|null>{
+export async function refreshSession(session:Session):Promise<Session|null>{
  const clientSecret=process.env.DISCORD_CLIENT_SECRET;
  if(!clientSecret)return null;
  const body=new URLSearchParams({
@@ -80,9 +85,47 @@ export async function getSession(request:NextRequest):Promise<{session:Session;r
  const existing=decryptSession(request.cookies.get(COOKIE_NAME)?.value);
  if(!existing)return null;
  if(existing.expires_at>Date.now()+60_000)return {session:existing,refreshed:false};
- const renewed=await refresh(existing);
+ const renewed=await refreshSession(existing);
  return renewed?{session:renewed,refreshed:true}:null;
 }
+
+export type VerifiedSession=
+ |{status:'authenticated';session:Session;refreshed:boolean}
+ |{status:'anonymous'}
+ |{status:'unavailable'};
+
+/** Não considerar alguém ligado só porque ainda tem uma cookie encriptada.
+ * O Discord tem de aceitar o token e confirmar a mesma identidade. */
+export async function getVerifiedSession(request:NextRequest):Promise<VerifiedSession>{
+ const found=await getSession(request);
+ if(!found)return {status:'anonymous'};
+ let session=found.session;
+ let refreshed=found.refreshed;
+ for(let attempt=0;attempt<2;attempt++){
+  let response:Response;
+  try{
+   response=await fetch(DISCORD_API+'/users/@me',{
+    headers:{Authorization:'Bearer '+session.access_token},
+    cache:'no-store',signal:AbortSignal.timeout(10000),
+   });
+  }catch{return {status:'unavailable'};}
+  if(response.ok){
+   try{
+    const user=await response.json() as {id?:string};
+    if(user.id===session.user.id)return {status:'authenticated',session,refreshed};
+   }catch{return {status:'unavailable'};}
+   return {status:'anonymous'};
+  }
+  if(response.status!==401 && response.status!==403)return {status:'unavailable'};
+  if(attempt===0){
+   const renewed=await refreshSession(session);
+   if(renewed){session=renewed;refreshed=true;continue;}
+  }
+  return {status:'anonymous'};
+ }
+ return {status:'anonymous'};
+}
+
 export function publicSiteOrigin(request:NextRequest):string{
  const configured=process.env.SHAYON_SITE_URL;
  if(configured)return new URL(configured).origin;
