@@ -1,11 +1,11 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {randomBytes} from 'node:crypto';
-import {DISCORD_CLIENT_ID,STATE_COOKIE,cookieOptions,discordRedirectUri} from '@/lib/server-auth';
+import {DISCORD_CLIENT_ID,STATE_COOKIE,cookieOptions,discordRedirectUri,publicSiteOrigin} from '@/lib/server-auth';
 export const runtime='nodejs';
 export async function GET(request:NextRequest){
  try{
   if(!process.env.DISCORD_CLIENT_SECRET || !process.env.SHAYON_SESSION_SECRET){
-   return NextResponse.redirect(new URL('/entrar?erro=configuracao',request.url));
+   return NextResponse.redirect(new URL('/entrar?erro=configuracao',publicSiteOrigin(request)));
   }
   const state=randomBytes(24).toString('base64url');
   const redirect=discordRedirectUri(request);
@@ -18,6 +18,6 @@ export async function GET(request:NextRequest){
   response.cookies.set(STATE_COOKIE,state,{...cookieOptions(),maxAge:600});
   return response;
  }catch{
-  return NextResponse.redirect(new URL('/entrar?erro=configuracao',request.url));
+  return NextResponse.redirect(new URL('/entrar?erro=configuracao',publicSiteOrigin(request)));
  }
 }
