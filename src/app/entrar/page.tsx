@@ -4,7 +4,8 @@ export const metadata={title:'Entrar com Discord'};
 const errors:Record<string,string>={
  configuracao:'O login ainda não está disponível. Contacta o suporte da Shayon.',
  cancelado:'A autorização foi cancelada. Podes tentar novamente.',
- sessao:'A sessão de autorização expirou ou o navegador bloqueou o cookie. Abre o site diretamente e tenta novamente.',
+ sessao:'Houve duas tentativas de login ou a autorização expirou. Fecha a janela antiga e tenta novamente.',
+ 'sessao-cookie':'O navegador não guardou o cookie temporário do login. Abre o site diretamente numa aba normal, permite cookies e volta a tentar.',
  origem:'A origem do pedido não corresponde ao Discord. Inicia sessão novamente.',
  'discord-token':'O Discord não conseguiu confirmar a autorização. Tenta novamente com uma sessão nova.',
  'token-incompleto':'O Discord devolveu uma autorização incompleta. Tenta novamente.',
