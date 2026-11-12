@@ -182,3 +182,26 @@
  .simple-module-row{padding:19px}
  .auth-panel{padding:32px 22px}
 }
+
+
+/* Clean, dedicated admin shell */
+.dashboard-simple{min-height:100vh;border-top:0}
+.dashboard-simple .simple-sidebar{min-height:100vh;position:sticky;top:0;align-self:start}
+.dashboard-simple .simple-main{max-width:none;min-height:100vh;padding:55px clamp(24px,5vw,88px) 38px}
+.dashboard-simple .simple-main>.dashboard-top,
+.dashboard-simple .simple-main>.simple-subtitle,
+.dashboard-simple .simple-main>.simple-guilds,
+.dashboard-simple .simple-main>.simple-empty,
+.dashboard-simple .simple-main>.simple-bottom-link,
+.dashboard-simple .simple-main>.simple-categories,
+.dashboard-simple .simple-main>.simple-module-list,
+.dashboard-simple .simple-main>.simple-owner-screen,
+.dashboard-simple .simple-main>.simple-settings,
+.dashboard-simple .simple-main>.simple-alert,
+.dashboard-simple .simple-main>.notice-success{max-width:1080px}
+.dashboard-simple .dashboard-top h1{font-size:clamp(29px,3vw,40px)}
+.dashboard-simple .simple-guild{min-height:84px}
+.owner-dashboard-intro{margin:2px 0 25px;border:1px solid #4d3448;background:radial-gradient(circle at 85% 10%,#4a263c 0,#1d141e 56%);border-radius:12px;padding:29px 30px}
+.owner-dashboard-intro h2{font-size:30px;margin:12px 0}
+.owner-dashboard-intro p{font-size:13px;color:#b9a6b6;line-height:1.7;max-width:550px;margin-bottom:0}
+@media(max-width:740px){.dashboard-simple .simple-sidebar{position:static;min-height:auto}.dashboard-simple .simple-main{min-height:calc(100vh - 150px);padding:26px 18px 35px}.owner-dashboard-intro{padding:23px 20px}}
