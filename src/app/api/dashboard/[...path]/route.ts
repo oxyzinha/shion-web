@@ -1,5 +1,5 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {clearSession,getSession,sameOrigin,setSession} from '@/lib/server-auth';
+import {clearSession,getSession,refreshSession,sameOrigin,setSession} from '@/lib/server-auth';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const upstream=(process.env.SHAYON_BOT_API_URL||'https://app-582c58dcabe4.factorai.cloud').replace(/\/+$/,'');
@@ -35,21 +35,46 @@ async function proxy(request:NextRequest,parts:string[],method:'GET'|'PUT'|'POST
   catch{return NextResponse.json({error:'JSON inválido'},{status:400});}
  }
  try{
-  const response=await fetch(upstream+'/api/dashboard/'+path,{
+  let current=session.session;
+  let renewed=session.refreshed;
+  const callBot=(token:string)=>fetch(upstream+'/api/dashboard/'+path,{
    method,cache:'no-store',signal:AbortSignal.timeout(13000),
-   headers:{Authorization:'Bearer '+session.session.access_token,
-    ...(method==='PUT'?{'Content-Type':'application/json'}:{})},
+   headers:{Authorization:'Bearer '+token,
+    ...(method!=='GET'?{'Content-Type':'application/json'}:{})},
    ...(body!==undefined?{body}:{}),
   });
+  let response=await callBot(current.access_token);
+  // O token pode ter sido revogado antes da data de expiração da cookie.
+  // Tentar uma única renovação e não mostrar o painel como autenticado
+  // se o Discord já não aceitar a sessão.
+  if(response.status===401){
+   const updated=await refreshSession(current);
+   if(updated){
+    current=updated;
+    renewed=true;
+    response=await callBot(current.access_token);
+   }
+  }
+  if(response.status===401){
+   const outgoing=NextResponse.json(
+    {error:'A sessão Discord expirou. Inicia sessão novamente.'},
+    {status:401,headers:{'Cache-Control':'no-store'}}
+   );
+   clearSession(outgoing);
+   return outgoing;
+  }
   const raw=await response.text();
   let value:unknown;
   try{value=JSON.parse(raw);}catch{value={error:'Resposta inválida do serviço da Shayon'};}
   const outgoing=NextResponse.json(value,{status:response.status,
    headers:{'Cache-Control':'no-store'}});
-  if(session.refreshed)setSession(outgoing,session.session);
+  if(renewed)setSession(outgoing,current);
   return outgoing;
  }catch{
-  return NextResponse.json({error:'Não foi possível contactar o bot. Tenta novamente.'},{status:503});
+  return NextResponse.json(
+   {error:'Não foi possível contactar o bot. Experimenta atualizar.'},
+   {status:503,headers:{'Cache-Control':'no-store'}}
+  );
  }
 }
 export async function GET(request:NextRequest,context:{params:Promise<{path:string[]}>}){
