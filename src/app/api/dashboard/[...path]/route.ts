@@ -10,6 +10,7 @@ const allowed=[
  /^[0-9]{16,21}\/editor\/(divulgacao|moderacao|rececao|cargos_automaticos|cargos_interativos|tickets|personalidade|analytics|oficial)$/,
  /^[0-9]{16,21}\/editor\/oficial\/publish$/,
  /^[0-9]{16,21}\/editor\/jobs\/[0-9]{1,10}$/,
+ /^owner\/monitor$/,
  /^owner\/status$/,
  /^owner\/global$/,
 ];
