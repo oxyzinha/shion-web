@@ -63,3 +63,18 @@
 .content-card ol li{padding-bottom:12px}
 @media(max-width:1040px){.dashboard-live{grid-template-columns:210px minmax(0,1fr)}.editor-grid{grid-template-columns:1fr}.role-edit-row{grid-template-columns:1fr 1fr}.role-edit-row .icon-action{justify-self:start}}
 @media(max-width:740px){.dashboard-live{display:flex;flex-direction:column}.dashboard-live .dashboard-sidebar{border-right:0;border-bottom:1px solid #4d364b;padding:18px}.dashboard-live .dashboard-main{padding:22px 17px}.guild-grid,.module-selection{grid-template-columns:1fr}.dashboard-sidebar .side-link{display:inline-flex;width:auto;max-width:100%;margin:4px}.sidebar-title{margin:9px}.role-edit-row{grid-template-columns:1fr}.config-field{padding:15px}}
+
+
+/* Editor dos painéis oficiais com publicação explícita pela Shayon */
+.official-pages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.official-page{border:1px solid #68455b;background:linear-gradient(155deg,#251826,#151118);border-radius:11px;padding:20px;min-width:0}
+.official-page h3{font-size:18px;margin:10px 0 22px;color:#f5d4e5}
+.official-page .config-field{margin-bottom:12px;padding:12px}
+.official-page .config-field label{color:#e0bfd3}
+.official-page textarea{min-height:145px}
+.official-actions{border:1px solid #6d4861;padding:24px;background:#281a28;border-radius:10px;margin:25px 0}
+.official-actions h3{font-size:20px;margin-bottom:10px}
+.official-actions p{font-size:13px;line-height:1.7;color:#ccb6c6}
+.official-confirm{margin:14px 0;border:1px solid #af708e;background:#341e2e;border-radius:9px;padding:16px}
+.official-results{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;color:#f3d7e4;font-size:12px;font-family:inherit}
+@media(max-width:900px){.official-pages{grid-template-columns:1fr}}
