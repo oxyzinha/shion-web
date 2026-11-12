@@ -218,10 +218,15 @@ export default function Dashboard(){
    if(!auth.authenticated){setGuilds([]);setOwner(null);return;}
    const summary=await jsonFetch<{guilds:Guild[]}>('/api/dashboard/summary');
    setGuilds(summary.guilds);
+   const requested=new URLSearchParams(window.location.search).get('guild');
+   if(requested&&summary.guilds.some(g=>g.id===requested&&g.installed)){
+    window.history.replaceState(null,'',window.location.pathname);
+    void loadGuild(requested);
+   }
    try{setOwner(await jsonFetch<Owner>('/api/dashboard/owner/status'));}catch{setOwner(null);}
   }catch(e){setError(e instanceof Error?e.message:'Erro ao carregar os servidores.');}
   finally{setLoading(false);}
- },[]);
+ },[loadGuild]);
  useEffect(()=>{void reload();},[reload]);
  const activeGuild=useMemo(()=>guilds.find(g=>g.id===selectedId),[guilds,selectedId]);
  const activeSection=useMemo(()=>editor?.sections.find(s=>s.id===section),[editor,section]);
