@@ -1,24 +1,29 @@
 import Link from 'next/link';
-import {ArrowRight,LockKeyhole,ShieldCheck} from 'lucide-react';
+import {ArrowRight,LockKeyhole} from 'lucide-react';
 export const metadata={title:'Entrar com Discord'};
-export default async function Page({searchParams}:{searchParams:Promise<{erro?:string}>}){
+const errors:Record<string,string>={
+ configuracao:'O login ainda não está disponível. Contacta o suporte da Shayon.',
+ cancelado:'A autorização foi cancelada. Podes tentar novamente.',
+ sessao:'A sessão de autorização expirou ou o navegador bloqueou o cookie. Abre o site diretamente e tenta novamente.',
+ origem:'A origem do pedido não corresponde ao Discord. Inicia sessão novamente.',
+ 'discord-token':'O Discord não conseguiu confirmar a autorização. Tenta novamente com uma sessão nova.',
+ 'token-incompleto':'O Discord devolveu uma autorização incompleta. Tenta novamente.',
+ permissoes:'É necessário autorizar o acesso ao perfil e à lista de servidores.',
+ perfil:'Não conseguimos obter o teu perfil Discord. Tenta novamente.',
+ ligacao:'Não foi possível contactar o Discord. Tenta novamente dentro de momentos.',
+ discord:'O login não foi concluído. Tenta novamente.',
+};
+export default async function Entrar({searchParams}:{searchParams:Promise<{erro?:string}>}){
  const {erro}=await searchParams;
- const text=erro==='configuracao'
- ?'O login ainda precisa das credenciais OAuth2 do site no alojamento. A Shayon no Discord continua a funcionar.'
- :erro?'Não foi possível concluir o login Discord. Experimenta novamente.':null;
- return <main className="wrap"><section className="subhero"><div className="eyebrow">SHAYON CONTROL CENTER</div>
- <h1>O teu servidor.<br/><em>As tuas regras.</em></h1>
- <p>Entra com a tua conta Discord para acederes aos servidores onde podes gerir a Shayon. Não pedimos a tua palavra-passe.</p></section>
- <div className="page-body detail-grid">
- <article className="content-card"><h2>Entrar com Discord ♡</h2>
- <p>Usamos a autorização oficial do Discord para identificar os teus servidores. Só mostramos opções de gestão onde tens a permissão <b>Gerir Servidor</b> e a Shayon está instalada.</p>
- {text&&<div className="note" role="alert">{text}</div>}
- <a className="button" href="/api/auth/login">Autorizar no Discord <ArrowRight size={17}/></a>
- <p style={{marginTop:20,fontSize:12}}>Ao entrar, autorizas apenas acesso ao teu perfil básico e à lista dos teus servidores. As alterações são verificadas no Discord antes de serem guardadas.</p>
- </article>
- <aside className="content-card"><div className="eyebrow">A TUA SEGURANÇA</div><h2>Controlo com permissões.</h2>
- <p><LockKeyhole size={16}/> Sessões protegidas no servidor, sem tokens no navegador.</p>
- <p><ShieldCheck size={16}/> Nada de acessos a servidores alheios.</p>
- <p>A Shayon ainda não está no teu servidor?</p><Link className="text-link" href="/adicionar">Ver como instalar →</Link>
- </aside></div></main>;
+ return <main className="auth-screen"><section className="auth-panel">
+ <div className="eyebrow">SHAYON ♡</div>
+ <h1>Entrar no <em>painel.</em></h1>
+ <p>Gere os teus servidores com a Shayon.</p>
+ {erro&&<div className="auth-error" role="alert">{errors[erro]||errors.discord}
+  <span className="auth-error-code">Código: {Object.hasOwn(errors,erro)?erro:'discord'}</span>
+ </div>}
+ <a href="/api/auth/login" className="button auth-button"><LockKeyhole size={18}/> Continuar com Discord <ArrowRight size={18}/></a>
+ <small>Não pedimos a tua palavra-passe. Apenas servidores que podes gerir.</small>
+ <Link href="/adicionar" className="auth-help">Ainda não tens a Shayon? Adicionar ao servidor</Link>
+ </section></main>;
 }
