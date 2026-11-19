@@ -6,8 +6,13 @@ const UPSTREAM=(process.env.SHAYON_BOT_API_URL||'https://app-582c58dcabe4.factor
 export async function GET(_request:NextRequest,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;
  if(!/^[0-9]{16,21}$/.test(id))return NextResponse.json({error:'Comunidade inválida'},{status:404});
+ const source=_request.nextUrl.searchParams.get('source');
+ if(source && source!=='catalog' && source!=='recommendation'){
+  return NextResponse.json({error:'Origem inválida'},{status:422});
+ }
+ const params=new URLSearchParams({source:source||'catalog'});
  try{
-  const reply=await fetch(UPSTREAM+'/api/discover/join/'+id,{
+  const reply=await fetch(UPSTREAM+'/api/discover/join/'+id+'?'+params,{
    redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(9000),
   });
   const location=reply.headers.get('location')||'';
