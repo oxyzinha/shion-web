@@ -7,6 +7,7 @@ const allowed=[
  /^summary$/,
  /^[0-9]{16,21}\/full$/,
  /^[0-9]{16,21}\/editor$/,
+ /^[0-9]{16,21}\/discovery\/stats$/,
  /^[0-9]{16,21}\/editor\/(divulgacao|moderacao|rececao|cargos_automaticos|cargos_interativos|tickets|personalidade|analytics|oficial)$/,
  /^[0-9]{16,21}\/editor\/oficial\/publish$/,
  /^[0-9]{16,21}\/editor\/jobs\/[0-9]{1,10}$/,
