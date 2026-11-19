@@ -1,7 +1,7 @@
 export type ModuleStatus = 'available' | 'planned';
 export type ShayonModule = {slug:string;title:string;eyebrow:string;description:string;status:ModuleStatus;details:string[];icon:string};
 export const modules: ShayonModule[] = [
- {slug:'divulgacao',title:'Divulgação automática',eyebrow:'CRESCIMENTO',description:'Conecta comunidades através de uma rede de divulgação inteligente e configurável.',status:'available',icon:'megaphone',details:['Modo Apenas divulgar e Divulgação mútua','Intervalos de publicação controlados','Configuração de anúncios e painéis','Estatísticas de anúncios enviados e recebidos']},
+ {slug:'divulgacao',title:'Divulgação e Descoberta',eyebrow:'CRESCIMENTO',description:'A tua comunidade no catálogo público e nos canais de parceiros que aceitaram receber anúncios.',status:'available',icon:'megaphone',details:['Listagem pública voluntária com categorias e idiomas','Modo Apenas divulgar e Divulgação mútua','Convites por DM apenas após clique ou pedido explícito','Aberturas de convites e publicações contabilizadas separadamente','Recomendações a pedido por !shayon descobrir']},
  {slug:'boas-vindas',title:'Boas-vindas e despedidas',eyebrow:'COMUNIDADE',description:'Recebe novos membros com mensagens personalizadas que refletem a identidade do servidor.',status:'available',icon:'heart',details:['Mensagens e canais personalizáveis','Variáveis de membros e servidores','Pré-visualização e banner','Ativação independente de entradas e saídas']},
  {slug:'cargos',title:'Cargos automáticos',eyebrow:'AUTOMAÇÃO',description:'Facilita a organização dos membros desde o primeiro momento.',status:'available',icon:'users',details:['Atribuição automática de cargos','Respeito pela hierarquia do Discord','Integração com a verificação de membros']},
  {slug:'tickets',title:'Sistema de tickets',eyebrow:'SUPORTE',description:'Organiza pedidos de suporte, parcerias e denúncias num fluxo privado.',status:'available',icon:'ticket',details:['Categorias de suporte, erros, parcerias e denúncias','Canais privados e equipas autorizadas','Registos, transcrições e encerramento']},
@@ -13,7 +13,7 @@ export const modules: ShayonModule[] = [
 export const docs = [
  {title:'Instalação',text:'Usa a página Adicionar para abrir o convite oficial no Discord. Escolhe o servidor, confirma permissões e escreve !shayon no canal de texto.'},
  {title:'Primeiros passos',text:'Entra no dashboard com Discord e configura os teus servidores. Só quem tem Gerir Servidor pode guardar alterações.'},
- {title:'Divulgação',text:'Seleciona o modo de participação e configura os anúncios e os canais da rede de divulgação.'},
+ {title:'Divulgação e catálogo',text:'Guarda primeiro o anúncio em Comunidade → Divulgação. Depois ativa Catálogo público para aparecer na pesquisa. O modo Divulgação mútua requer um canal de anúncios de parceiros e só contacta membros por DM quando pedem.'},
  {title:'Boas-vindas',text:'Define os canais, ativa as mensagens pretendidas e personaliza o texto de entradas e saídas.'},
  {title:'Cargos automáticos',text:'Confirma que o cargo da Shayon está acima dos cargos que deverá atribuir.'},
  {title:'Tickets',text:'Escolhe as categorias e os cargos responsáveis pelo atendimento, respeitando a privacidade dos pedidos.'},
