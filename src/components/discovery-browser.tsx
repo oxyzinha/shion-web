@@ -49,7 +49,7 @@ export function DiscoveryBrowser({communities}:{communities:Community[]}){
   {visible.length>0?<div className="discovery-grid">{visible.map((item)=><article className="discovery-card" key={item.id}>
    <div className="discovery-card-symbol" aria-hidden="true">{item.name.slice(0,1).toUpperCase()}</div>
    <div className="discovery-card-meta"><span>{item.category_label}</span><span>{item.language_label}</span>{item.partner&&<span>Parceira</span>}</div>
-   <h3>{item.name}</h3><p>{item.description}</p>
+   <h3><Link href={'/descobrir/'+encodeURIComponent(item.id)}>{item.name}</Link></h3><p>{item.description}</p>
    {item.tags.length>0&&<div className="discovery-tags">{item.tags.map(tag=><span key={tag}>{tag}</span>)}</div>}
    <a className="discovery-join" href={'/api/descobrir/entrar/'+encodeURIComponent(item.id)} target="_blank" rel="noopener noreferrer">
     Entrar na comunidade <ArrowUpRight size={16}/>
