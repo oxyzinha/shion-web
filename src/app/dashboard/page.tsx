@@ -5,11 +5,12 @@ import {ArrowRight,ArrowUpRight,Check,ChevronRight,Command,ExternalLink,LockKeyh
  LogOut,RefreshCw,Save,Server,Settings2,ShieldCheck,Users,X} from 'lucide-react';
 import {inviteTo,SHAYON_INVITE} from '@/lib/links';
 import {OwnerMonitor} from '@/components/owner-monitor';
+import {DiscoveryStats} from '@/components/discovery-stats';
 
 type Guild={id:string;name:string;installed:boolean;owner:boolean};
 type FieldKind='bool'|'int'|'text'|'channel'|'role'|'roles'|'choice'|'role_items'|'official_pages';
 type Field={key:string;label:string;type:FieldKind;description?:string;min?:number;max?:number;options?:string[];channelType?:number};
-type SectionId='divulgacao'|'moderacao'|'rececao'|'cargos_automaticos'|'cargos_interativos'|'tickets'|'personalidade'|'analytics'|'musica'|'oficial';
+type SectionId='divulgacao'|'descoberta'|'moderacao'|'rececao'|'cargos_automaticos'|'cargos_interativos'|'tickets'|'personalidade'|'analytics'|'musica'|'oficial';
 type Section={id:SectionId;title:string;description:string;editable:boolean};
 type Option={id:string;name:string;type?:number};
 type Editor={
@@ -21,18 +22,24 @@ type Session={authenticated:boolean;user?:{id:string;username:string;global_name
 type Owner={official_guild_id:string|null;paused:boolean;can_manage:boolean};
 type Area='servidores'|'geral'|'comunidade'|'gestao'|'extras'|'dona';
 const GROUPS=[
- {id:'comunidade' as const,title:'Comunidade',description:'Receção, tickets e divulgação.',modules:['rececao','tickets','divulgacao'] as SectionId[]},
+ {id:'comunidade' as const,title:'Comunidade',description:'Receção, tickets, divulgação e descoberta.',modules:['rececao','tickets','divulgacao','descoberta'] as SectionId[]},
  {id:'gestao' as const,title:'Gestão',description:'Moderação e cargos.',modules:['moderacao','cargos_automaticos','cargos_interativos'] as SectionId[]},
  {id:'extras' as const,title:'Extras',description:'Personalidade, música e estatísticas.',modules:['personalidade','musica','analytics'] as SectionId[]},
 ];
 const FIELDS:Record<SectionId,Field[]>={
  divulgacao:[
-  {key:'ativo',label:'Participar na rede de divulgação',type:'bool'},
+  {key:'ativo',label:'Participar na rede de divulgação',type:'bool',description:'Os anúncios circulam apenas em canais de parceiros autorizados.'},
   {key:'modo',label:'Modo de divulgação',type:'choice',options:['mutua','so_divulgar'],description:'Mútua: envia e recebe anúncios. Apenas divulgar: não recebe anúncios.'},
   {key:'canal_id',label:'Canal para receber anúncios',type:'channel',channelType:0},
   {key:'nome',label:'Nome do servidor no anúncio',type:'text',max:60},
   {key:'descricao',label:'Descrição do anúncio',type:'text',max:350},
   {key:'convite',label:'Convite Discord do próprio servidor',type:'text',max:200,description:'Tem de ser um link HTTPS do Discord e pertencer a este servidor.'},
+ ],
+ descoberta:[
+  {key:'listed',label:'Mostrar a comunidade no catálogo público',type:'bool',description:'Ativa primeiro o anúncio em Divulgação. A listagem é pública e pode ser encontrada por qualquer visitante, sem login.'},
+  {key:'category',label:'Categoria principal',type:'choice',options:['jogos','tecnologia','roleplay','anime','conversa','arte','musica','outros']},
+  {key:'language',label:'Idioma da comunidade',type:'choice',options:['pt-PT','pt-BR','en','es','outro']},
+  {key:'tags',label:'Interesses (separados por vírgulas)',type:'text',max:120,description:'Até 120 caracteres. Exemplo: casual, português, amizade.'},
  ],
  moderacao:[
   {key:'spam_ativo',label:'Anti-spam',type:'bool'},
@@ -82,9 +89,15 @@ const FIELDS:Record<SectionId,Field[]>={
   {key:'paginas',label:'Páginas e canais oficiais',type:'official_pages',description:'Personaliza cada página oficial. Campos vazios preservam os textos originais da Shayon.'},
  ],
 };
-const DISPLAY:Record<string,string>={mutua:'Divulgação mútua',so_divulgar:'Apenas divulgar',automatica:'Automática',provocadora:'Provocadora',fria:'Fria',fofa:'Fofa'};
+const DISPLAY:Record<string,string>={
+ jogos:'Jogos',tecnologia:'Tecnologia',roleplay:'Roleplay',anime:'Anime',
+ conversa:'Conversa e amizades',arte:'Arte e criatividade',musica:'Música',outros:'Outros',
+ 'pt-PT':'Português (Portugal)','pt-BR':'Português (Brasil)',
+ en:'English',es:'Español',outro:'Outro',
+ mutua:'Divulgação mútua',so_divulgar:'Apenas divulgar',automatica:'Automática',provocadora:'Provocadora',fria:'Fria',fofa:'Fofa'};
 const COMMANDS:Partial<Record<SectionId,string>>={
  divulgacao:'!shayon divulgacao painel',
+ descoberta:'!shayon descobrir jogos',
  moderacao:'!shayon moderacao diagnostico',
  rececao:'!shayon rececao painel',
  cargos_automaticos:'!shayon cargos automatico @Cargo',
@@ -96,6 +109,7 @@ const COMMANDS:Partial<Record<SectionId,string>>={
  oficial:'!shayon oficial',
 };
 const PUBLISH_NOTICE:Partial<Record<SectionId,string>>={
+ descoberta:'O catálogo só apresenta servidores que ativaram a divulgação e aceitaram aparecer publicamente. O modo mútuo permite participar também na rede de canais parceiros; privados abertos não autorizam publicidade.',
  cargos_interativos:'Os cargos são guardados aqui, mas os novos botões só aparecem depois de publicares/atualizares o painel pelo comando Discord.',
  tickets:'As definições ficam guardadas, mas publicar ou mudar o painel visível do Discord ainda exige o comando indicado abaixo.',
  oficial:'Guarda a configuração e depois escolhe Publicar/Atualizar para enviar as alterações diretamente ao Discord. A Shayon conserva as mensagens existentes sem duplicá-las.',
@@ -438,6 +452,7 @@ export default function Dashboard(){
      <div className="note">Esta área é exclusiva da proprietária.</div>
      :<div className="editor-grid simple-editor-grid">{(FIELDS[section!]||[]).map(field=><FieldEditor key={field.key} field={field} value={draft[field.key]} onChange={value=>update(field.key,value)} options={editor.options}/>)}</div>}
     {section&&PUBLISH_NOTICE[section]&&<p className="simple-field-note">{PUBLISH_NOTICE[section]}</p>}
+    {section==='descoberta'&&<DiscoveryStats guildId={selectedId}/>}
     {section==='personalidade'&&<p className="simple-field-note">O modo de IA gratuita só fica ativo quando tiver uma chave Groq configurada no alojamento.</p>}
     {(section!=='oficial'||(owner?.can_manage&&owner.official_guild_id===selectedId))&&
     <div className="form-actions simple-save-actions"><button className="button" type="button" disabled={saving} onClick={()=>void save()}>
