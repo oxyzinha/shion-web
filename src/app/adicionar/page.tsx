@@ -18,6 +18,7 @@ export default function AddPage(){
  <li>Abre <Link className="text-link" href="/dashboard">Dashboard →</Link> e seleciona o servidor.</li>
  <li>Ativa os módulos que quiseres, escolhe canais/cargos e guarda.</li>
  <li>Para publicar painéis visíveis, utiliza os comandos indicados na secção de tickets ou cargos enquanto a publicação remota não estiver disponível.</li></ol>
+ <p>Para chegares a pessoas de fora, configura também <b>Comunidade → Catálogo público</b> e autoriza a listagem. No modo <b>Divulgação mútua</b> a Shayon publica nos canais parceiros configurados. Não envia publicidade não solicitada por DM.</p>
  <p>O servidor oficial da Shayon tem opções próprias para a administração global. Os restantes servidores só gerem as suas configurações.</p></section>
  <aside className="content-card"><div className="eyebrow">PERMISSÕES E PROTEÇÃO</div>
  <h2>O que o convite permite?</h2><p><MessageCircle size={17}/> Enviar mensagens, embeds, anexos e entrar em canais de voz.</p>
