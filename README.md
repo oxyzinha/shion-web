@@ -31,6 +31,19 @@ A rede de divulgação global é acessível **só à proprietária da aplicaçã
 
 **Operações ainda feitas com comandos Discord:** publicação/atualização de painéis de tickets e cargos interativos; controlo da fila musical em tempo real; ações de moderação em membros individuais. O website mostra estes limites, sem inventar botões de sucesso.
 
+## Descoberta pública e parcerias (2026-11)
+
+- **Catálogo público**: https://app-a9ad77db7684.factorai.cloud/descobrir — pesquisa por nome, interesse, categoria e idioma, com páginas partilháveis e listagem SEO de servidores opt-in.
+- **Parcerias**: https://app-a9ad77db7684.factorai.cloud/parcerias — instruções para usar o modo Divulgação mútua e canais autorizados.
+- No dashboard: **Servidor → Comunidade → Divulgação** (ativar a rede, configurar nome, descrição e convite) e **Catálogo público** (ativar publicação voluntária, categoria, idioma e etiquetas).
+- Nenhum servidor é publicado automaticamente ao lançar a funcionalidade. Desativar Divulgação ou Catálogo público oculta-o imediatamente.
+- **Convite no website** abre através de /api/descobrir/entrar/ID e regista apenas contagens agregadas por dia/servidor. Não mede visitantes únicos nem adesões.
+- A Shayon continua a publicar anúncios apenas em canais de parceiros opt-in; mensagens de convite por DM dependem de um clique voluntário.
+- Comando de recomendações pessoais: `!shayon descobrir jogos` (ou outras categorias) envia no máximo três sugestões por DM a quem o executar, com limite de frequência.
+- O catálogo por si só não garante tráfego: para alcançar novas pessoas, partilhar as páginas públicas de servidores e atrair parceiros externos.
+
+**Privacidade**: o catálogo expõe apenas informação que o administrador escolheu publicar. Não guarda IPs dos visitantes, destinatários de DMs nem histórico de mensagens para fins de publicidade.
+
 ## Configuração OAuth2
 
 No [Discord Developer Portal](https://discord.com/developers/applications/1563985507996934284/oauth2), acrescenta o Redirect URI exato:
