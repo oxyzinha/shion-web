@@ -1,11 +1,11 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
 import {ArrowUpRight,Search,SlidersHorizontal,UsersRound} from 'lucide-react';
 
 export type Community={
  id:string;name:string;description:string;category:string;category_label:string;
- language:string;language_label:string;tags:string[];partner:boolean;
+ language:string;language_label:string;tags:string[];partner:boolean;match_reason?:string;
 };
 export const CATEGORY_LABELS:Record<string,string>={
  jogos:'Jogos',tecnologia:'Tecnologia',roleplay:'Roleplay',
@@ -21,16 +21,59 @@ export function DiscoveryBrowser({communities}:{communities:Community[]}){
  const [category,setCategory]=useState('');
  const [language,setLanguage]=useState('');
  const [partner,setPartner]=useState(false);
+ const [interests,setInterests]=useState<string[]>([]);
+ const [ranked,setRanked]=useState(communities);
+ const [recommending,setRecommending]=useState(false);
+ const [recommendationError,setRecommendationError]=useState('');
+ useEffect(()=>{
+  if(interests.length===0){setRanked(communities);setRecommending(false);setRecommendationError('');return;}
+  const controller=new AbortController();
+  setRecommending(true);
+  setRecommendationError('');
+  const timer=window.setTimeout(()=>{
+   const query=new URLSearchParams({interests:interests.join(',')});
+   void fetch('/api/descobrir/recomendar?'+query,{cache:'no-store',signal:controller.signal})
+    .then(async reply=>{
+     if(!reply.ok)throw new Error('Não foi possível atualizar as sugestões.');
+     const result=await reply.json() as {servers?:Community[]};
+     if(!controller.signal.aborted)setRanked(Array.isArray(result.servers)?result.servers:[]);
+    })
+    .catch(()=>{if(!controller.signal.aborted)setRecommendationError('As sugestões estão temporariamente indisponíveis.');})
+    .finally(()=>{if(!controller.signal.aborted)setRecommending(false);});
+  },180);
+  return ()=>{window.clearTimeout(timer);controller.abort();};
+ },[communities,interests]);
+ const toggleInterest=(value:string)=>{
+  setInterests(previous=>previous.includes(value)
+   ?previous.filter(item=>item!==value)
+   :previous.length<3?[...previous,value]:previous);
+ };
  const visible=useMemo(()=>{
   const q=search.trim().toLocaleLowerCase('pt-PT');
-  return communities.filter(item=>
+  return ranked.filter(item=>
    (!category||item.category===category)
    &&(!language||item.language===language)
    &&(!partner||item.partner)
    &&(!q||[item.name,item.description,...item.tags].join(' ').toLocaleLowerCase('pt-PT').includes(q))
   );
- },[communities,search,category,language,partner]);
+ },[ranked,search,category,language,partner]);
  return <div className="discovery-explore">
+  <section className="discovery-interest-picker" aria-label="Recomendações por interesses">
+   <div className="discovery-interest-heading"><div>
+    <strong>Encontra comunidades à tua medida</strong>
+    <p>Escolhe até três temas. Só usamos estas escolhas para ordenar sugestões nesta página.</p>
+   </div>{interests.length>0&&<button type="button" onClick={()=>setInterests([])}>Limpar escolhas</button>}</div>
+   <div className="discovery-interest-chips">
+    {Object.entries(CATEGORY_LABELS).map(([key,label])=><button
+     key={key} type="button" onClick={()=>toggleInterest(key)}
+     aria-pressed={interests.includes(key)}
+     disabled={interests.length>=3&&!interests.includes(key)}
+     className={'discovery-interest-chip '+(interests.includes(key)?'is-selected':'')}
+    >{label}</button>)}
+   </div>
+   <small>{recommending?'A encontrar combinações...':interests.length>0?'Sugestões ordenadas por afinidade e exposição equilibrada.':'Comunidades ordenadas para repartir melhor a exposição.'}</small>
+   {recommendationError&&<p className="discovery-interest-error" role="status">{recommendationError}</p>}
+  </section>
   <div className="discovery-filters">
    <label className="discovery-search"><Search size={17}/><span className="sr-only">Pesquisar comunidades</span>
     <input value={search} onChange={e=>setSearch(e.target.value)} maxLength={80} placeholder="Pesquisar comunidades ou interesses..."/>
@@ -45,11 +88,13 @@ export function DiscoveryBrowser({communities}:{communities:Community[]}){
    </select></label>
    <label className="discovery-partners"><input type="checkbox" checked={partner} onChange={e=>setPartner(e.target.checked)}/> Só parceiros</label>
   </div>
-  <p className="discovery-count"><SlidersHorizontal size={14}/>{visible.length} {visible.length===1?'comunidade encontrada':'comunidades encontradas'} · Inscrição voluntária</p>
+  <p className="discovery-count"><SlidersHorizontal size={14}/>{visible.length} {visible.length===1?'comunidade encontrada':'comunidades encontradas'} · Inscrição voluntária · Sem perfis pessoais</p>
   {visible.length>0?<div className="discovery-grid">{visible.map((item)=><article className="discovery-card" key={item.id}>
    <div className="discovery-card-symbol" aria-hidden="true">{item.name.slice(0,1).toUpperCase()}</div>
    <div className="discovery-card-meta"><span>{item.category_label}</span><span>{item.language_label}</span>{item.partner&&<span>Parceira</span>}</div>
-   <h3><Link href={'/descobrir/'+encodeURIComponent(item.id)}>{item.name}</Link></h3><p>{item.description}</p>
+   <h3><Link href={'/descobrir/'+encodeURIComponent(item.id)}>{item.name}</Link></h3>
+   {interests.length>0&&item.match_reason&&<span className="discovery-match">{item.match_reason}</span>}
+   <p>{item.description}</p>
    {item.tags.length>0&&<div className="discovery-tags">{item.tags.map(tag=><span key={tag}>{tag}</span>)}</div>}
    <a className="discovery-join" href={'/api/descobrir/entrar/'+encodeURIComponent(item.id)} target="_blank" rel="noopener noreferrer">
     Entrar na comunidade <ArrowUpRight size={16}/>
@@ -57,7 +102,7 @@ export function DiscoveryBrowser({communities}:{communities:Community[]}){
   </article>)}</div>
   :<div className="discovery-empty"><UsersRound size={26}/>
    <h3>{communities.length===0?'As primeiras comunidades estão a chegar':'Não encontrámos resultados com estes filtros'}</h3>
-   <p>{communities.length===0?'Os administradores decidem quando querem aparecer no catálogo. Volta a visitar-nos ou adiciona a tua comunidade.':'Experimenta outra categoria ou pesquisa.'}</p>
+   <p>{communities.length===0?'Os administradores decidem quando querem aparecer no catálogo. Volta a visitar-nos ou adiciona a tua comunidade.':'Experimenta outra categoria, interesse ou pesquisa.'}</p>
    {communities.length>0&&<button type="button" className="button button-outline button-small" onClick={()=>{setSearch('');setCategory('');setLanguage('');setPartner(false);}}>Limpar filtros</button>}
   </div>}
  </div>;
