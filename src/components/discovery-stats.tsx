@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import {useEffect,useState} from 'react';
 import {ArrowUpRight,MousePointerClick,RadioTower} from 'lucide-react';
-type Stats={invite_opens_total:number;invite_opens_7d:number;invite_opens_today:number;network_posts_7d:number;disclaimer:string};
+type Stats={invite_opens_total:number;invite_opens_7d:number;invite_opens_today:number;network_posts_7d:number;invite_opens_catalog_7d?:number;invite_opens_recommendation_7d?:number;disclaimer:string};
 export function DiscoveryStats({guildId}:{guildId:string}){
  const [stats,setStats]=useState<Stats|null>(null);
  const [error,setError]=useState('');
@@ -26,6 +26,11 @@ export function DiscoveryStats({guildId}:{guildId:string}){
    <div><MousePointerClick size={16}/><small>Total de aberturas</small><strong>{stats.invite_opens_total}</strong></div>
    <div><RadioTower size={16}/><small>Anúncios da rede em 7 dias</small><strong>{stats.network_posts_7d}</strong></div>
   </div>:<p className="simple-field-note">{error||'A carregar resultados...'}</p>}
-  <p className="discovery-stats-note">As aberturas dos convites não são visitantes únicos, nem entradas confirmadas. A divulgação em canais parceiros é contabilizada à parte.</p>
+  {stats&&<div className="discovery-stats-sources">
+   <strong>De onde vieram as aberturas registadas?</strong>
+   <div><span>Catálogo público</span><b>{stats.invite_opens_catalog_7d??0}</b></div>
+   <div><span>Recomendações pedidas à Shayon</span><b>{stats.invite_opens_recommendation_7d??0}</b></div>
+  </div>}
+  <p className="discovery-stats-note">As aberturas dos links não são visitantes únicos nem entradas confirmadas. A origem é declarada pelo próprio link, podendo ser alterada; não equivale a atribuição verificada. Dados anteriores a esta medição não aparecem separados por origem.</p>
  </section>;
 }
