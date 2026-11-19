@@ -1,5 +1,6 @@
 'use client';
 import {useMemo,useState} from 'react';
+import Link from 'next/link';
 import {ArrowUpRight,Search,SlidersHorizontal,UsersRound} from 'lucide-react';
 
 export type Community={
