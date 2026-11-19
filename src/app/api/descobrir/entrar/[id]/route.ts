@@ -10,9 +10,9 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
  if(source && source!=='catalog' && source!=='recommendation'){
   return NextResponse.json({error:'Origem inválida'},{status:422});
  }
- const params=new URLSearchParams({source:source||'catalog'});
+ const queryParams=new URLSearchParams({source:source||'catalog'});
  try{
-  const reply=await fetch(UPSTREAM+'/api/discover/join/'+id+'?'+params,{
+  const reply=await fetch(UPSTREAM+'/api/discover/join/'+id+'?'+queryParams,{
    redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(9000),
   });
   const location=reply.headers.get('location')||'';
