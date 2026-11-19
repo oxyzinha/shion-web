@@ -261,6 +261,15 @@
 .auth-retry:hover{color:#fff}
 
 
+.discovery-detail>.text-link{display:inline-flex;margin-bottom:28px}
+.discovery-detail-card{max-width:770px;padding:40px;border:1px solid #61435b;background:radial-gradient(circle at 95% 0,#49273f,#1b141e 63%);border-radius:15px}
+.discovery-detail-card .discovery-card-symbol{margin:25px 0}
+.discovery-detail-card h1{font-size:clamp(32px,5vw,55px);overflow-wrap:anywhere;margin:0 0 20px}
+.discovery-detail-card>p{color:#c8b5c4;font-size:15px;line-height:1.85;margin:26px 0;white-space:pre-wrap}
+.discovery-detail-card .discovery-tags{margin:20px 0 32px}
+.discovery-detail-card>small{display:block;color:#a28fa1;font-size:11px;margin-top:20px}
+@media(max-width:690px){.discovery-detail-card{padding:24px}}
+
 /* Shayon Discovery — public catalogue and opt-in partnership network */
 .discovery-page{padding-top:74px;padding-bottom:105px;min-height:calc(100vh - 190px)}
 .discovery-intro{max-width:770px;margin-bottom:38px}
