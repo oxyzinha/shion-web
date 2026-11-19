@@ -1,4 +1,5 @@
 import {NextRequest,NextResponse} from 'next/server';
+import {publicSiteOrigin} from '@/lib/server-auth';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const UPSTREAM=(process.env.SHAYON_BOT_API_URL||'https://app-582c58dcabe4.factorai.cloud').replace(/\/$/,'');
@@ -16,7 +17,7 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
    status:302,headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'},
   });
  }catch{
-  return NextResponse.redirect(new URL('/descobrir',_request.url),{
+  return NextResponse.redirect(new URL('/descobrir',publicSiteOrigin(_request)),{
    status:303,headers:{'Cache-Control':'no-store'},
   });
  }
