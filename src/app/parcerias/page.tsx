@@ -10,7 +10,7 @@ export default function PartnersPage(){
   </section>
   <div className="partnership-cards">
    <article><Globe2/><h2>Catálogo público</h2><p>Qualquer visitante pode encontrar a tua comunidade por interesse, mesmo que não pertença aos servidores onde a Shayon está instalada.</p><Link href="/descobrir">Explorar comunidades <ArrowRight size={15}/></Link></article>
-   <article><Handshake/><h2>Rede de parceiros</h2><p>No modo mútuo, o teu servidor disponibiliza um canal de divulgação e pode aparecer nos anúncios de outros participantes.</p><Link href="/dashboard">Gerir parceria <ArrowRight size={15}/></Link></article>
+   <article><Handshake/><h2>Rede de parceiros</h2><p>No modo mútuo, autorizas um canal a receber anúncios e participas na distribuição. A rede automática está disponível; pedidos de parceria entre administradores ainda não têm uma central própria.</p><Link href="/dashboard">Gerir parceria <ArrowRight size={15}/></Link></article>
    <article><MessageCircle/><h2>Convite por pedido</h2><p>Os anúncios têm um botão para receber um convite por DM. A Shayon só o envia quando alguém clicar, nunca para todos os privados abertos.</p><Link href="/adicionar">Adicionar a Shayon <ArrowRight size={15}/></Link></article>
   </div>
   <section className="partner-steps">
