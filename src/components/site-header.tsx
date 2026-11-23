@@ -23,8 +23,8 @@ export function Header(){
 }
 export function Footer(){
  return <footer className="footer"><div className="wrap footer-inner">
-  <div><div className="brand"><img src="/shion-icon.png" alt="" className="brand-avatar"/> SHAYON ♡</div><p>O teu universo. A tua comunidade.</p></div>
-  <div className="footer-links"><Link href="/descobrir">Descobrir</Link><Link href="/parcerias">Parcerias</Link><Link href="/adicionar">Adicionar bot</Link><Link href="/privacidade">Privacidade</Link></div>
+  <div><div className="brand"><img src="/shion-icon.png" alt="" className="brand-avatar"/> SHAYON ♡</div><p>Descobre o teu universo. Cresce ao teu ritmo.</p></div>
+  <div className="footer-links"><Link href="/descobrir">Descobrir</Link><Link href="/parcerias">Parcerias</Link><Link href="/documentacao">Ajuda</Link><Link href="/estado">Estado</Link><Link href="/privacidade">Privacidade</Link></div>
   <small>© {new Date().getFullYear()} Shayon.</small>
  </div></footer>;
 }
