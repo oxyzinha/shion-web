@@ -11,10 +11,13 @@ export const modules: ShayonModule[] = [
  {slug:'analytics',title:'Analytics',eyebrow:'INSIGHTS',description:'Compreende o crescimento e a atividade da tua comunidade.',status:'available',icon:'chart',details:['Entradas, saídas e evolução de membros','Mensagens, imagens e canais mais ativos','Métricas de tickets e moderação']},
 ];
 export const docs = [
- {title:'Instalação',text:'Usa a página Adicionar para abrir o convite oficial no Discord. Escolhe o servidor, confirma permissões e escreve !shayon no canal de texto.'},
- {title:'Primeiros passos',text:'Entra no dashboard com Discord e configura os teus servidores. Só quem tem Gerir Servidor pode guardar alterações.'},
- {title:'Divulgação e catálogo',text:'Guarda primeiro o anúncio em Comunidade → Divulgação. Depois ativa Catálogo público para aparecer na pesquisa. O modo Divulgação mútua requer um canal de anúncios de parceiros e só contacta membros por DM quando pedem.'},
- {title:'Boas-vindas',text:'Define os canais, ativa as mensagens pretendidas e personaliza o texto de entradas e saídas.'},
- {title:'Cargos automáticos',text:'Confirma que o cargo da Shayon está acima dos cargos que deverá atribuir.'},
- {title:'Tickets',text:'Escolhe as categorias e os cargos responsáveis pelo atendimento, respeitando a privacidade dos pedidos.'},
+ {title:'Instalar e entrar',text:'Convida a Shayon com o link oficial e confirma as permissões. Abre o dashboard e inicia sessão com a conta Discord que tem Gerir Servidor. Escolhe o servidor e guarda apenas os módulos que precisas.'},
+ {title:'Criar o anúncio',text:'Abre Comunidade → Divulgação no dashboard ou usa !shayon divulgacao configurar. Preenche nome, descrição e convite Discord válido. No modo Apenas divulgar o servidor não recebe anúncios; em Divulgação mútua escolhes o canal autorizado a recebê-los.'},
+ {title:'Aparecer no catálogo',text:'Depois de ativar a rede e guardar o anúncio, abre Comunidade → Catálogo público. Ativa a listagem e escolhe categoria, idioma e interesses. O servidor só se torna público após esta autorização e desaparece quando a listagem ou a rede é desativada.'},
+ {title:'Recomendar comunidades',text:'Qualquer pessoa pode visitar Descobrir, filtrar por temas ou usar !shayon descobrir jogos, anime no Discord. A Shayon envia até três sugestões por privado apenas após esse pedido. Não envia DMs promocionais em massa.'},
+ {title:'Crescer com parceiros',text:'Divulgação mútua publica nos canais configurados dos servidores participantes, respeitando o intervalo mínimo de seis horas por destino. A Shayon favorece anúncios menos expostos nos últimos sete dias. Com poucos parceiros, partilha também a página pública do teu servidor.'},
+ {title:'Cargos e permissões',text:'Para cargos automáticos e interativos, o cargo Shayon tem de ficar acima dos cargos atribuídos. Em canais de anúncios e painéis, confirma Ver Canal, Enviar Mensagens, Incorporar Links e Anexar Ficheiros. Mantém a gestão restrita a administradores.'},
+ {title:'Tickets e receção',text:'Configura categorias e canais para suporte privado. As transcrições dos tickets ficam no canal de registos definido pelo servidor. Boas-vindas e despedidas têm textos e canais próprios e não substituem a moderação.'},
+ {title:'Música, Analytics e personalidade',text:'A música funciona em canais de voz mas depende de permissões, FFmpeg e fontes disponíveis. Analytics é opcional e não recupera histórico anterior à ativação. A personalidade Dark Rose tem vários tons; a IA generativa só funciona após configurar o fornecedor.'},
+ {title:'A minha Shayon',text:'A secção privada da proprietária permite consultar a monitorização e gerir o servidor oficial. Não aparece para administradores comuns. Os indicadores de cliques são aberturas de convites, não adesões confirmadas.'},
 ];
